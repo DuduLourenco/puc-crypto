@@ -1,0 +1,59 @@
+:root {
+  /* Brand & Status Colors (Metronic Theme) */
+  --primary: #1b84ff;
+  --primary-hover: #056ee9;
+  --primary-light: #f1f8ff;
+  --primary-active: #045ec8;
+  
+  --success: #17c653;
+  --success-light: #e8fff3;
+  --success-text: #0bb783;
+
+  --danger: #f8285a;
+  --danger-light: #fff5f8;
+  --danger-text: #f1416c;
+
+  --warning: #f6c000;
+  --warning-light: #fff8dd;
+
+  --purple: #7239ea;
+  --purple-light: #f8f5ff;
+
+  --dark: #181c32;
+  --muted: #7e8299;
+  --gray-100: #f9f9f9;
+  --gray-200: #f4f5f8;
+  --gray-300: #e4e6ef;
+  --gray-400: #b5b5c3;
+  --gray-500: #a1a5b7;
+  --gray-600: #7e8299;
+  --gray-700: #5e6278;
+  --gray-800: #3f4254;
+  --gray-900: #181c32;
+
+  --card-bg: #ffffff;
+  --body-bg: #f9fafb;
+  --border-color: #f1f1f4;
+  --border-color-subtle: #f4f5f8;
+
+  /* Typography */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Plus Jakarta Sans', var(--font-sans);
+
+  /* Shadows */
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 2px 4px 0 rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 12px 0 rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 25px -3px rgba(0, 0, 0, 0.08);
+
+  /* Radii */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-full: 9999px;
+
+  /* Layout */
+  --sidebar-width: 72px;
+  --header-height: 68px;
+}

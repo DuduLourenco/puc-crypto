@@ -1,0 +1,3 @@
+crie um projeto react utilizando como base o print anexado, o projeto sera uma plataforma crypto que por enquanto tera uma tela de dashboard que tera uma listagem de crypto moedas disponiveis na aplicacao com o valor em reais
+-> para a obtecao das criptomoedas e valores sera feita uma requisicao a uma api que sera criada no azure (faca a estrutura para chama-la) e defina a estrutura que ela retorna-ra
+-> tambem tera uma requisicao do tipo "me" que retornara as informacoes do usuario logado (da mesma api azure) -> pode definir a estrutura de retorno
