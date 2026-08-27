@@ -12,7 +12,7 @@
 
 - **Repositório GitHub**: [https://github.com/DuduLourenco/puc-crypto](https://github.com/DuduLourenco/puc-crypto)
 - **Aplicação Frontend em Produção (Azure Static Web Apps)**: [https://thankful-cliff-0e3d0ca0f.7.azurestaticapps.net](https://thankful-cliff-0e3d0ca0f.7.azurestaticapps.net)
-- **API Backend (Azure Functions)**: [https://crypto-frontend.azurewebsites.net/api](https://crypto-frontend.azurewebsites.net/api)
+- **API Backend (Azure Functions)**: [https://crypto-frontend-bvdbdccnbwb3f7bv.eastus2-01.azurewebsites.net/api](https://crypto-frontend-bvdbdccnbwb3f7bv.eastus2-01.azurewebsites.net/api)
 
 ---
 
