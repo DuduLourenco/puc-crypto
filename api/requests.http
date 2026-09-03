@@ -1,0 +1,26 @@
+### Variáveis (troque para a URL do Azure quando publicar)
+@baseUrl = http://localhost:7071/api
+
+### Listar
+GET {{baseUrl}}/cryptos
+
+### Buscar por texto
+GET {{baseUrl}}/cryptos?search=bit
+
+### Cadastrar
+POST {{baseUrl}}/cryptos
+Content-Type: application/json
+
+{ "name": "Bitcoin", "symbol": "BTC" }
+
+### Detalhar (troque o id)
+GET {{baseUrl}}/cryptos/000000000000000000000000
+
+### Editar (troque o id)
+PUT {{baseUrl}}/cryptos/000000000000000000000000
+Content-Type: application/json
+
+{ "name": "Bitcoin", "symbol": "XBT" }
+
+### Excluir (troque o id)
+DELETE {{baseUrl}}/cryptos/000000000000000000000000

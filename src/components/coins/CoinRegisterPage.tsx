@@ -6,6 +6,7 @@ import {
   Image as ImageIcon,
   Palette,
   Trash2,
+  Pencil,
   AlertCircle,
   CheckCircle2,
   X,
@@ -13,7 +14,7 @@ import {
 } from 'lucide-react';
 import { COIN_ICON_PRESETS } from './coinIconPresets';
 import { CoinAvatar } from './CoinAvatar';
-import { coinRegistryService } from '../../services/coinRegistryService';
+import { coinRegistryService, CoinApiError } from '../../services/coinRegistryService';
 import { CoinIconSource, CustomCoin } from '../../types/coin.types';
 
 const MAX_UPLOAD_BYTES = 2 * 1024 * 1024; // 2 MB
@@ -36,11 +37,36 @@ export const CoinRegisterPage: React.FC = () => {
   const [errors, setErrors] = useState<FormErrors>({});
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [coins, setCoins] = useState<CustomCoin[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  /** Id da moeda em edição; null significa que o formulário está cadastrando */
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Carrega as moedas já cadastradas na API Azure
   useEffect(() => {
-    setCoins(coinRegistryService.list());
+    let ativo = true;
+
+    (async () => {
+      try {
+        const lista = await coinRegistryService.list();
+        if (ativo) setCoins(lista);
+      } catch (err) {
+        if (ativo) {
+          setLoadError(
+            err instanceof Error ? err.message : 'Não foi possível carregar as moedas cadastradas.'
+          );
+        }
+      } finally {
+        if (ativo) setIsLoading(false);
+      }
+    })();
+
+    return () => {
+      ativo = false;
+    };
   }, []);
 
   // Fecha o aviso de sucesso automaticamente
@@ -118,6 +144,28 @@ export const CoinRegisterPage: React.FC = () => {
     setSelectedPresetId(COIN_ICON_PRESETS[0].id);
     clearUpload();
     setErrors({});
+    setEditingId(null);
+  };
+
+  /** Carrega uma moeda da listagem no formulário para edição */
+  const startEdit = (coin: CustomCoin) => {
+    setEditingId(coin.id);
+    setName(coin.name);
+    setSymbol(coin.symbol);
+    setIconSource(coin.iconSource);
+
+    if (coin.iconSource === 'upload') {
+      setUploadDataUrl(coin.iconDataUrl || '');
+      setUploadFileName(coin.iconFileName || '');
+    } else {
+      setSelectedPresetId(coin.iconPresetId || COIN_ICON_PRESETS[0].id);
+      clearUpload();
+    }
+
+    setErrors({});
+    setFeedback(null);
+    // O formulário fica acima da listagem; sem isso a edição parece não responder
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const validate = (): FormErrors => {
@@ -128,9 +176,9 @@ export const CoinRegisterPage: React.FC = () => {
     }
     if (symbol.trim().length < 2) {
       validationErrors.symbol = 'Informe o símbolo da moeda (mínimo 2 caracteres).';
-    } else if (coinRegistryService.symbolExists(symbol)) {
-      validationErrors.symbol = `O símbolo ${symbol.toUpperCase()} já está cadastrado.`;
     }
+    // A unicidade do símbolo é garantida pelo índice único do MongoDB. A API
+    // responde 409 e handleSubmit exibe o erro no campo correspondente.
     if (iconSource === 'upload' && !uploadDataUrl) {
       validationErrors.icon = 'Envie um arquivo PNG ou escolha um ícone padrão.';
     }
@@ -138,7 +186,7 @@ export const CoinRegisterPage: React.FC = () => {
     return validationErrors;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const validationErrors = validate();
     setErrors(validationErrors);
@@ -148,22 +196,64 @@ export const CoinRegisterPage: React.FC = () => {
       return;
     }
 
-    const created = coinRegistryService.create({
+    const input = {
       name,
       symbol,
       iconSource,
       iconPresetId: iconSource === 'preset' ? selectedPresetId : undefined,
       iconDataUrl: iconSource === 'upload' ? uploadDataUrl : undefined,
       iconFileName: iconSource === 'upload' ? uploadFileName : undefined,
-    });
+    };
 
-    setCoins((prev) => [created, ...prev]);
-    setFeedback({ type: 'success', text: `${created.name} (${created.symbol}) cadastrada com sucesso!` });
-    resetForm();
+    setIsSaving(true);
+    try {
+      if (editingId) {
+        const updated = await coinRegistryService.update(editingId, input);
+        setCoins((prev) => prev.map((coin) => (coin.id === editingId ? updated : coin)));
+        setFeedback({
+          type: 'success',
+          text: `${updated.name} (${updated.symbol}) atualizada com sucesso!`,
+        });
+      } else {
+        const created = await coinRegistryService.create(input);
+        setCoins((prev) => [created, ...prev]);
+        setFeedback({
+          type: 'success',
+          text: `${created.name} (${created.symbol}) cadastrada com sucesso!`,
+        });
+      }
+
+      resetForm();
+    } catch (err) {
+      if (err instanceof CoinApiError && err.isDuplicateSymbol) {
+        setErrors((prev) => ({ ...prev, symbol: err.message }));
+        setFeedback({ type: 'error', text: err.message });
+      } else if (err instanceof CoinApiError) {
+        setFeedback({ type: 'error', text: err.details[0] || err.message });
+      } else {
+        setFeedback({ type: 'error', text: 'Não foi possível salvar. Verifique sua conexão.' });
+      }
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleRemove = (id: string) => {
-    setCoins(coinRegistryService.remove(id));
+  const handleRemove = async (id: string) => {
+    const anteriores = coins;
+    // Editar um registro que acabou de ser excluído resultaria em 404 no submit
+    if (editingId === id) resetForm();
+    // Remove da lista antes da resposta e desfaz se a API recusar
+    setCoins((prev) => prev.filter((coin) => coin.id !== id));
+
+    try {
+      await coinRegistryService.remove(id);
+    } catch (err) {
+      setCoins(anteriores);
+      setFeedback({
+        type: 'error',
+        text: err instanceof Error ? err.message : 'Não foi possível remover a moeda.',
+      });
+    }
   };
 
   return (
@@ -202,7 +292,9 @@ export const CoinRegisterPage: React.FC = () => {
         {/* Coluna Esquerda: Formulário */}
         <form className="card coin-form-card" onSubmit={handleSubmit} noValidate>
           <div className="card-header-simple">
-            <h3 className="card-title-lg">Dados da Moeda</h3>
+            <h3 className="card-title-lg">
+              {editingId ? 'Editando Moeda' : 'Dados da Moeda'}
+            </h3>
           </div>
 
           {/* Nome */}
@@ -382,12 +474,14 @@ export const CoinRegisterPage: React.FC = () => {
           {/* Ações */}
           <div className="form-actions">
             <button type="button" className="btn-secondary" onClick={resetForm}>
-              <RotateCcw size={15} />
-              <span>Limpar</span>
+              {editingId ? <X size={15} /> : <RotateCcw size={15} />}
+              <span>{editingId ? 'Cancelar edição' : 'Limpar'}</span>
             </button>
-            <button type="submit" className="btn-primary">
+            <button type="submit" className="btn-primary" disabled={isSaving}>
               <Check size={16} />
-              <span>Cadastrar moeda</span>
+              <span>
+                {isSaving ? 'Salvando…' : editingId ? 'Salvar alterações' : 'Cadastrar moeda'}
+              </span>
             </button>
           </div>
         </form>
@@ -430,11 +524,23 @@ export const CoinRegisterPage: React.FC = () => {
             </div>
 
             <div className="watchlist-items-list">
-              {coins.length === 0 ? (
+              {isLoading ? (
+                <div className="empty-state">Carregando moedas da API…</div>
+              ) : loadError ? (
+                <div className="empty-state">{loadError}</div>
+              ) : coins.length === 0 ? (
                 <div className="empty-state">Nenhuma moeda cadastrada ainda.</div>
               ) : (
                 coins.map((coin) => (
-                  <div key={coin.id} className="watchlist-item">
+                  <div
+                    key={coin.id}
+                    className="watchlist-item"
+                    style={
+                      editingId === coin.id
+                        ? { backgroundColor: 'var(--primary-light)' }
+                        : undefined
+                    }
+                  >
                     <div className="watchlist-item-user">
                       <CoinAvatar coin={coin} size={36} />
                       <div className="watchlist-item-text-col">
@@ -449,14 +555,24 @@ export const CoinRegisterPage: React.FC = () => {
                         </div>
                       </div>
                     </div>
-                    <button
-                      className="icon-action-btn"
-                      onClick={() => handleRemove(coin.id)}
-                      title="Remover moeda"
-                      aria-label={`Remover ${coin.name}`}
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                    <div style={{ display: 'flex', gap: '2px' }}>
+                      <button
+                        className="icon-action-btn"
+                        onClick={() => startEdit(coin)}
+                        title="Editar moeda"
+                        aria-label={`Editar ${coin.name}`}
+                      >
+                        <Pencil size={15} />
+                      </button>
+                      <button
+                        className="icon-action-btn"
+                        onClick={() => handleRemove(coin.id)}
+                        title="Remover moeda"
+                        aria-label={`Remover ${coin.name}`}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </div>
                 ))
               )}

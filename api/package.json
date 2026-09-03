@@ -1,0 +1,14 @@
+{
+  "name": "puc-crypto-api",
+  "version": "1.0.0",
+  "description": "Azure Functions (Node.js v4) - CRUD de criptomoedas no MongoDB Atlas",
+  "main": "src/functions/*.js",
+  "scripts": {
+    "start": "func start",
+    "seed": "node scripts/seed.js"
+  },
+  "dependencies": {
+    "@azure/functions": "^4.6.0",
+    "mongodb": "^6.12.0"
+  }
+}
