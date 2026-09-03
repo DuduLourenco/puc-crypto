@@ -8,6 +8,7 @@ import { CryptoTable } from './components/dashboard/CryptoTable';
 import { WatchlistCard } from './components/dashboard/WatchlistCard';
 import { MarketChartPlaceholder } from './components/dashboard/MarketChartPlaceholder';
 import { ApiStatusModal } from './components/dashboard/ApiStatusModal';
+import { CoinRegisterPage } from './components/coins/CoinRegisterPage';
 import { cryptoService } from './services/cryptoService';
 import { userService } from './services/userService';
 import { currentApiStatus, subscribeToApiStatus, ApiStatusState } from './services/apiClient';
@@ -145,45 +146,52 @@ export const App: React.FC = () => {
           isMockFallback={apiStatus.isUsingMockFallback}
         />
 
-        {/* Subheader */}
-        <Subheader
-          currentTab={activeSubTab}
-          onSelectTab={setActiveSubTab}
-          selectedPeriod="Agosto, 2026"
-        />
+        {/* Subheader (apenas no dashboard) */}
+        {activeNavTab === 'dashboard' && (
+          <Subheader
+            currentTab={activeSubTab}
+            onSelectTab={setActiveSubTab}
+            selectedPeriod="Agosto, 2026"
+          />
+        )}
+
+        {/* Tela de Cadastro de Moeda */}
+        {activeNavTab === 'coins' && <CoinRegisterPage />}
 
         {/* Dashboard Body */}
-        <main className="content-body">
-          {/* Top Grid: Hero Card (Left) + Highlights Card (Right) */}
-          <div className="dashboard-grid-top">
-            <HeroBanner onExploreMarket={scrollToTable} />
-            <HighlightsCard
-              marketOverview={marketOverview}
-              topCryptos={cryptos}
-              onSelectCrypto={(crypto) => setSelectedCrypto(crypto)}
-            />
-          </div>
+        {activeNavTab === 'dashboard' && (
+          <main className="content-body">
+            {/* Top Grid: Hero Card (Left) + Highlights Card (Right) */}
+            <div className="dashboard-grid-top">
+              <HeroBanner onExploreMarket={scrollToTable} />
+              <HighlightsCard
+                marketOverview={marketOverview}
+                topCryptos={cryptos}
+                onSelectCrypto={(crypto) => setSelectedCrypto(crypto)}
+              />
+            </div>
 
-          {/* Interactive Chart Preview Area */}
-          <MarketChartPlaceholder activeCrypto={selectedCrypto} />
+            {/* Interactive Chart Preview Area */}
+            <MarketChartPlaceholder activeCrypto={selectedCrypto} />
 
-          {/* Bottom Grid: Informative Crypto Table (Left) + Watchlist (Right) */}
-          <div className="dashboard-grid-bottom">
-            <CryptoTable
-              cryptos={cryptos}
-              isLoading={isLoading}
-              watchlistCryptoIds={watchlistCryptoIds}
-              onToggleWatchlist={handleToggleWatchlist}
-              onSelectCrypto={(crypto) => setSelectedCrypto(crypto)}
-            />
-            <WatchlistCard
-              watchlist={user?.watchlist || []}
-              availableCryptos={cryptos}
-              onAddCryptoToWatchlist={handleAddCryptoToWatchlist}
-              onRemoveFromWatchlist={handleRemoveWatchlist}
-            />
-          </div>
-        </main>
+            {/* Bottom Grid: Informative Crypto Table (Left) + Watchlist (Right) */}
+            <div className="dashboard-grid-bottom">
+              <CryptoTable
+                cryptos={cryptos}
+                isLoading={isLoading}
+                watchlistCryptoIds={watchlistCryptoIds}
+                onToggleWatchlist={handleToggleWatchlist}
+                onSelectCrypto={(crypto) => setSelectedCrypto(crypto)}
+              />
+              <WatchlistCard
+                watchlist={user?.watchlist || []}
+                availableCryptos={cryptos}
+                onAddCryptoToWatchlist={handleAddCryptoToWatchlist}
+                onRemoveFromWatchlist={handleRemoveWatchlist}
+              />
+            </div>
+          </main>
+        )}
       </div>
 
       {/* Modal de Detalhes da API Azure */}

@@ -2,6 +2,7 @@ import React from 'react';
 import {
   LayoutDashboard,
   CloudLightning,
+  Coins,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -26,7 +27,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <span style={{ letterSpacing: '-1px' }}>M</span>
       </div>
 
-      {/* Navigation - Único Item */}
+      {/* Navigation */}
       <nav className="sidebar-nav">
         <button
           className={`sidebar-nav-item ${activeTab === 'dashboard' ? 'active' : ''}`}
@@ -35,6 +36,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
           aria-label="Dashboard de Criptomoedas"
         >
           <LayoutDashboard size={20} strokeWidth={2.2} />
+        </button>
+        <button
+          className={`sidebar-nav-item ${activeTab === 'coins' ? 'active' : ''}`}
+          onClick={() => onTabChange('coins')}
+          title="Cadastro de Moeda"
+          aria-label="Cadastro de Moeda"
+        >
+          <Coins size={20} strokeWidth={2.2} />
         </button>
       </nav>
 
