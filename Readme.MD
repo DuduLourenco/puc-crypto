@@ -1,1 +1,0 @@
-URL: https://thankful-cliff-0e3d0ca0f.7.azurestaticapps.net
