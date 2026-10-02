@@ -20,6 +20,10 @@ Cada decisão registra o contexto, o que foi decidido, as alternativas considera
 | 014 | Configuração de build e versões de pacotes centralizadas | 2 | Aceita |
 | 015 | Dockerfile único parametrizado para os serviços .NET | 2 | Aceita |
 | 016 | Rotas do Gateway com prefixo `/api` removido | 2 | Aceita |
+| 017 | JWT assinado com HS256 e validado no Gateway | 3 | Aceita |
+| 018 | Falhas como `Result` e validação por filtro de endpoint | 3 | Aceita |
+| 019 | Migrations do EF Core aplicadas na inicialização da API | 3 | Aceita |
+| 020 | Senhas com BCrypt | 3 | Aceita |
 
 ---
 
@@ -214,3 +218,51 @@ Cada decisão registra o contexto, o que foi decidido, as alternativas considera
 **Justificativa.** O frontend enxerga uma API única, sem saber quantos serviços existem. Os serviços definem caminhos próprios, independentes da convenção do Gateway.
 
 **Consequências.** O caminho visto pelo cliente difere do caminho visto pelo serviço, o que precisa aparecer nos diagramas de sequência. Uma rota nova do Identity fora de `/auth` exige ajuste na configuração do Gateway.
+
+## ADR-017 — JWT assinado com HS256 e validado no Gateway
+
+**Contexto.** O Identity emite o token de acesso e os demais componentes precisam confiar nele. Era uma pendência da fase 1.
+
+**Decisão.** O token é um JWT assinado com HS256. A chave simétrica vem da configuração (`Jwt:SigningKey`) e é compartilhada entre o Identity, que assina, e o Gateway, que valida emissor, audiência, assinatura e validade. As rotas do Gateway que exigem autenticação são marcadas com `AuthorizationPolicy` na configuração do YARP.
+
+**Alternativas.** RS256, com chave privada apenas no Identity e chave pública distribuída por um endpoint JWKS. Validar o token somente dentro de cada serviço.
+
+**Justificativa.** A chave simétrica dispensa geração e distribuição de pares de chaves, o que simplifica o ambiente local e o deploy. Validar no Gateway barra requisições não autenticadas antes que cheguem aos serviços.
+
+**Consequências.** Todo componente que valida o token também conseguiria emitir um, pois conhece a chave. Em um sistema de produção, o adequado seria RS256. A troca fica restrita a `JwtTokenGenerator` e à configuração de autenticação do Gateway.
+
+## ADR-018 — Falhas como `Result` e validação por filtro de endpoint
+
+**Contexto.** As slices precisam de uma forma uniforme de validar a entrada e de devolver falhas esperadas, como e-mail duplicado ou credenciais inválidas.
+
+**Decisão.** Os handlers devolvem `Result<T>`, que carrega o valor ou um `Error` com código, mensagem e tipo. `ResultExtensions.ToProblem` converte o tipo do erro em status HTTP no formato Problem Details. A validação da entrada usa FluentValidation e é executada por `ValidationFilter`, ligado à rota com `WithValidation<T>()`, antes do handler.
+
+**Alternativas.** Lançar exceções para falhas de negócio e tratá-las em um middleware. Chamar o validador dentro de cada handler.
+
+**Justificativa.** As falhas esperadas ficam visíveis na assinatura do handler e não dependem de fluxo por exceção. O filtro evita repetir a chamada de validação em cada endpoint e mantém o handler concentrado na regra de negócio.
+
+**Consequências.** `PucCrypto.BuildingBlocks.Abstractions` passa a conter, além de contratos, pequenas implementações de apoio (registro de endpoints e handlers, filtro de validação, conversão de erros) e depende do ASP.NET Core e do FluentValidation. O Domain não referencia esse projeto.
+
+## ADR-019 — Migrations do EF Core aplicadas na inicialização da API
+
+**Contexto.** Cada serviço é dono do esquema do seu banco e precisa criá-lo e evoluí-lo.
+
+**Decisão.** O esquema é versionado por migrations do EF Core, mantidas em `Infrastructure/Persistence/Migrations`. A API aplica as migrations pendentes ao iniciar. A ferramenta `dotnet-ef` é registrada como ferramenta local do repositório.
+
+**Alternativas.** Aplicar as migrations em uma etapa separada do deploy. Scripts SQL manuais.
+
+**Justificativa.** Subir o ambiente passa a exigir um único comando, e o esquema fica sempre alinhado ao código em execução.
+
+**Consequências.** O usuário de banco da aplicação precisa de permissão para alterar o esquema. Com mais de uma instância do mesmo serviço iniciando ao mesmo tempo, as migrations poderiam concorrer; o projeto roda uma instância por serviço.
+
+## ADR-020 — Senhas com BCrypt
+
+**Contexto.** O Identity precisa armazenar senhas de forma segura.
+
+**Decisão.** As senhas são gravadas como hash BCrypt, pela biblioteca BCrypt.Net-Next, atrás da porta `IPasswordHasher`.
+
+**Alternativas.** PBKDF2 com o `PasswordHasher` do ASP.NET Core Identity. Argon2.
+
+**Justificativa.** BCrypt é um algoritmo consolidado para senhas, com sal embutido no hash e uma API de duas chamadas.
+
+**Consequências.** O BCrypt considera apenas os primeiros 72 bytes da senha; por isso o validador limita a senha a 72 caracteres. Trocar o algoritmo exige apenas outra implementação de `IPasswordHasher`.

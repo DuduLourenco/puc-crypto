@@ -61,6 +61,7 @@ services:
     environment:
       ReverseProxy__Clusters__identity__Destinations__default__Address: http://identity-api:8080
       ReverseProxy__Clusters__bff__Destinations__default__Address: http://bff:8080
+      Jwt__SigningKey: ${JWT_SIGNING_KEY}
     ports:
       - "8080:8080"
     depends_on:
@@ -89,6 +90,7 @@ services:
         PROJECT_NAME: PucCrypto.Identity.Api
     environment:
       ConnectionStrings__Database: Host=postgres;Port=5432;Database=identity_db;Username=identity_user;Password=${IDENTITY_DB_PASSWORD}
+      Jwt__SigningKey: ${JWT_SIGNING_KEY}
     ports:
       - "127.0.0.1:5101:8080"
     depends_on:
