@@ -154,6 +154,7 @@ public abstract class ServiceArchitectureTests(string serviceName)
         type.GetInterfaces().Any(contract =>
             contract.IsGenericType &&
             (contract.GetGenericTypeDefinition() == typeof(ICommandHandler<,>) ||
+             contract.GetGenericTypeDefinition() == typeof(ICommandHandler<>) ||
              contract.GetGenericTypeDefinition() == typeof(IQueryHandler<,>)));
 
     private static void AssertSuccessful(TestResult result) =>

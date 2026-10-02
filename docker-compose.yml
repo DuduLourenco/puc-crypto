@@ -105,10 +105,16 @@ services:
         PROJECT_NAME: PucCrypto.Catalog.Api
     environment:
       ConnectionStrings__Database: Host=postgres;Port=5432;Database=catalog_db;Username=catalog_user;Password=${CATALOG_DB_PASSWORD}
+      Jwt__SigningKey: ${JWT_SIGNING_KEY}
+      RabbitMq__Host: rabbitmq
+      RabbitMq__Username: ${RABBITMQ_USER}
+      RabbitMq__Password: ${RABBITMQ_PASSWORD}
     ports:
       - "127.0.0.1:5102:8080"
     depends_on:
       postgres:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
 
   marketdata-api:

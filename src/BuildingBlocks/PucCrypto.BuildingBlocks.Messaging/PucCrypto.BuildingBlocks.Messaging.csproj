@@ -1,6 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <PackageReference Include="RabbitMQ.Client" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="../PucCrypto.BuildingBlocks.Abstractions/PucCrypto.BuildingBlocks.Abstractions.csproj" />
   </ItemGroup>
 

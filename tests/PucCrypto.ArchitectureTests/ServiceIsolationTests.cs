@@ -1,3 +1,4 @@
+using System.Reflection;
 using NetArchTest.Rules;
 using Xunit;
 
@@ -35,6 +36,24 @@ public sealed class ServiceIsolationTests
             .SelectMany(assembly => assembly.GetReferencedAssemblies())
             .Select(reference => reference.Name!)
             .Where(name => otherServices.Any(other => name.StartsWith(other + ".", StringComparison.Ordinal)));
+
+        Assert.Empty(references);
+    }
+
+    [Theory]
+    [InlineData("PucCrypto.BuildingBlocks.Abstractions")]
+    [InlineData("PucCrypto.BuildingBlocks.Authentication")]
+    [InlineData("PucCrypto.BuildingBlocks.Messaging")]
+    [InlineData("PucCrypto.Contracts")]
+    public void CodigoCompartilhado_NaoReferenciaServicos(string assemblyName)
+    {
+        var services = ServiceAssemblies.AllServices
+            .Select(service => new ServiceAssemblies(service).RootNamespace)
+            .ToArray();
+
+        var references = Assembly.Load(assemblyName).GetReferencedAssemblies()
+            .Select(reference => reference.Name!)
+            .Where(name => services.Any(service => name.StartsWith(service + ".", StringComparison.Ordinal)));
 
         Assert.Empty(references);
     }

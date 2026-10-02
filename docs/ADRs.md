@@ -24,6 +24,10 @@ Cada decisão registra o contexto, o que foi decidido, as alternativas considera
 | 018 | Falhas como `Result` e validação por filtro de endpoint | 3 | Aceita |
 | 019 | Migrations do EF Core aplicadas na inicialização da API | 3 | Aceita |
 | 020 | Senhas com BCrypt | 3 | Aceita |
+| 021 | Serviços validam o JWT repassado | 4 | Aceita |
+| 022 | Evento publicado após a gravação, sem outbox | 4 | Aceita |
+| 023 | Topologia de eventos: uma exchange topic e nome do evento como chave | 4 | Aceita |
+| 024 | Código comum a várias slices em `Application/Common` | 4 | Aceita |
 
 ---
 
@@ -266,3 +270,51 @@ Cada decisão registra o contexto, o que foi decidido, as alternativas considera
 **Justificativa.** BCrypt é um algoritmo consolidado para senhas, com sal embutido no hash e uma API de duas chamadas.
 
 **Consequências.** O BCrypt considera apenas os primeiros 72 bytes da senha; por isso o validador limita a senha a 72 caracteres. Trocar o algoritmo exige apenas outra implementação de `IPasswordHasher`.
+
+## ADR-021 — Serviços validam o JWT repassado
+
+**Contexto.** O Catalog precisa saber qual usuário está fazendo a requisição. O Gateway já valida o token (ADR-017), mas o Catalog fica atrás do Gateway e do BFF.
+
+**Decisão.** O token é repassado no cabeçalho `Authorization` até o serviço. Cada serviço que precisa da identidade do usuário valida o JWT novamente e lê o id da claim `sub`. A configuração de validação fica em um projeto compartilhado, `PucCrypto.BuildingBlocks.Authentication`, usado pelo Gateway e pelas APIs.
+
+**Alternativas.** O Gateway validar o token e repassar o id do usuário em um cabeçalho próprio, como `X-User-Id`, em que os serviços confiam.
+
+**Justificativa.** O serviço não depende de confiar em quem o chamou: uma requisição que chegue a ele por outro caminho, sem token válido, é recusada. A identidade trafega em um formato único, assinado.
+
+**Consequências.** Todo serviço que valida o token precisa da chave de assinatura (ver a consequência do ADR-017). A validação é repetida a cada salto, com custo desprezível para este sistema.
+
+## ADR-022 — Evento publicado após a gravação, sem outbox
+
+**Contexto.** Ao adicionar uma criptomoeda nova, o Catalog grava no banco e publica `CryptoRegistered`. Banco e broker não participam da mesma transação.
+
+**Decisão.** O handler grava no banco e, em seguida, publica o evento, aguardando a confirmação do broker.
+
+**Alternativas.** Padrão Transactional Outbox: gravar o evento em uma tabela na mesma transação dos dados e publicá-lo por um processo em segundo plano.
+
+**Justificativa.** O outbox exigiria uma tabela, um publicador em segundo plano e controle de reenvio em cada serviço, o que foge da simplicidade pedida para o projeto.
+
+**Consequências.** Se a publicação falhar depois da gravação, o dado fica salvo e o evento se perde: a requisição devolve erro, e uma nova tentativa não republica, porque a moeda já existe no catálogo. Em produção, o outbox seria o caminho adequado.
+
+## ADR-023 — Topologia de eventos: uma exchange topic e nome do evento como chave
+
+**Contexto.** O ADR-005 definiu a abstração `IEventBus`. Faltava definir como os eventos são organizados no broker.
+
+**Decisão.** No RabbitMQ, todos os eventos vão para a exchange `puccrypto.events`, do tipo topic e durável. A chave de roteamento é o nome do tipo do evento. Cada consumidor terá sua própria fila, ligada às chaves que lhe interessam. As mensagens são persistentes, e o publicador aguarda a confirmação do broker. No Azure Service Bus, o equivalente será um tópico por evento com uma assinatura por consumidor.
+
+**Alternativas.** Uma exchange por evento. Filas diretas entre publicador e consumidor.
+
+**Justificativa.** O publicador não conhece os consumidores: um novo consumidor apenas cria sua fila e sua ligação. Uma exchange única é simples de inspecionar e de documentar.
+
+**Consequências.** Um evento publicado sem nenhuma fila ligada é descartado. O adaptador de Service Bus ainda não existe; será escrito na fase 9, junto com o deploy.
+
+## ADR-024 — Código comum a várias slices em `Application/Common`
+
+**Contexto.** As slices não podem referenciar umas às outras, mas no Catalog quatro slices devolvem a mesma representação do item monitorado e três usam o mesmo erro de "não encontrado".
+
+**Decisão.** Tipos usados por mais de uma slice ficam em `Application/Common` (respostas e erros) ou em `Application/Abstractions` (portas). As slices podem depender dessas pastas e do Domain, nunca de outra slice. O corpo HTTP (`Request`) é separado do `Command`, que inclui o id do usuário obtido do token.
+
+**Alternativas.** Repetir o tipo de resposta em cada slice. Permitir que uma slice use tipos de outra.
+
+**Justificativa.** Repetir quatro vezes o mesmo tipo e o mesmo mapeamento criaria divergência sem ganho. Uma pasta comum, pequena e explícita, mantém a regra de independência entre slices verificável por teste.
+
+**Consequências.** `Common` precisa permanecer restrito a tipos realmente compartilhados, para não virar um depósito de código.

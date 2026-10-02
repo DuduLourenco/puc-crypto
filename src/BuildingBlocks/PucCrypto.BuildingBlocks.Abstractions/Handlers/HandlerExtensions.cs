@@ -5,7 +5,12 @@ namespace PucCrypto.BuildingBlocks.Abstractions.Handlers;
 
 public static class HandlerExtensions
 {
-    private static readonly Type[] HandlerContracts = [typeof(ICommandHandler<,>), typeof(IQueryHandler<,>)];
+    private static readonly Type[] HandlerContracts =
+    [
+        typeof(ICommandHandler<,>),
+        typeof(ICommandHandler<>),
+        typeof(IQueryHandler<,>)
+    ];
 
     /// <summary>Registra todos os handlers de command e query do assembly.</summary>
     public static IServiceCollection AddHandlers(this IServiceCollection services, Assembly assembly)

@@ -13,6 +13,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../../src/BuildingBlocks/PucCrypto.BuildingBlocks.Abstractions/PucCrypto.BuildingBlocks.Abstractions.csproj" />
+    <ProjectReference Include="../../src/BuildingBlocks/PucCrypto.BuildingBlocks.Authentication/PucCrypto.BuildingBlocks.Authentication.csproj" />
+    <ProjectReference Include="../../src/BuildingBlocks/PucCrypto.BuildingBlocks.Messaging/PucCrypto.BuildingBlocks.Messaging.csproj" />
+    <ProjectReference Include="../../src/BuildingBlocks/PucCrypto.Contracts/PucCrypto.Contracts.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="../../src/Services/Identity/PucCrypto.Identity.Domain/PucCrypto.Identity.Domain.csproj" />
     <ProjectReference Include="../../src/Services/Identity/PucCrypto.Identity.Application/PucCrypto.Identity.Application.csproj" />
     <ProjectReference Include="../../src/Services/Identity/PucCrypto.Identity.Infrastructure/PucCrypto.Identity.Infrastructure.csproj" />

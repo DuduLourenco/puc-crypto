@@ -77,7 +77,7 @@ Features/RegisterUser/
 └── RegisterUserValidator.cs    # validação da entrada
 ```
 
-Uma slice não referencia outra slice. O que é comum a várias slices fica em `Domain` ou em `Application/Abstractions`.
+Uma slice não referencia outra slice. O que é comum a várias slices fica em `Domain`, em `Application/Abstractions` (portas) ou em `Application/Common` (respostas e erros compartilhados).
 
 ## 4. Componentes planejados
 

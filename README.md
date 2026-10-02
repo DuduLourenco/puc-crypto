@@ -30,8 +30,9 @@ O Gateway responde em http://localhost:8080 e é o único ponto de entrada. Para
 - [Fase 1 — estrutura do repositório e plano de fases](docs/fases/fase-01.md)
 - [Fase 2 — scaffold da solução](docs/fases/fase-02.md)
 - [Fase 3 — serviço Identity](docs/fases/fase-03.md)
+- [Fase 4 — serviço Catalog e publicação de eventos](docs/fases/fase-04.md)
 - [Decisões de arquitetura (ADRs)](docs/ADRs.md)
 
 ## Estado
 
-Fase 3 concluída: serviço Identity com cadastro e login por JWT, validação do token no Gateway e testes de arquitetura. Catalog, MarketData, Prediction e BFF ainda respondem apenas `/health`.
+Fase 4 concluída: Identity (cadastro e login por JWT) e Catalog (CRUD de criptomoedas monitoradas, com publicação de `CryptoRegistered` no RabbitMQ). MarketData, Prediction e BFF ainda respondem apenas `/health`; por isso o CRUD ainda não é acessível pelo Gateway.

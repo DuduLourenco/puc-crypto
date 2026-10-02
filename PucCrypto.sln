@@ -71,6 +71,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{1E6C1B2F
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PucCrypto.ArchitectureTests", "tests\PucCrypto.ArchitectureTests\PucCrypto.ArchitectureTests.csproj", "{8EF4B810-A553-42A4-8B3D-1F38E75747A3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PucCrypto.BuildingBlocks.Authentication", "src\BuildingBlocks\PucCrypto.BuildingBlocks.Authentication\PucCrypto.BuildingBlocks.Authentication.csproj", "{3B4C6F65-182C-4906-AC39-BC6F40FCB3F4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -176,6 +178,10 @@ Global
 		{8EF4B810-A553-42A4-8B3D-1F38E75747A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8EF4B810-A553-42A4-8B3D-1F38E75747A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8EF4B810-A553-42A4-8B3D-1F38E75747A3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3B4C6F65-182C-4906-AC39-BC6F40FCB3F4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3B4C6F65-182C-4906-AC39-BC6F40FCB3F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3B4C6F65-182C-4906-AC39-BC6F40FCB3F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3B4C6F65-182C-4906-AC39-BC6F40FCB3F4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{8C099AC7-1FDD-4E12-8BC0-C9B83CDA4DF9} = {93B6EF48-5785-45DE-BCBC-7F1C4C7F2AB9}
@@ -210,5 +216,6 @@ Global
 		{8D52134F-0C6D-43D4-B883-E896208B4C80} = {DB4DB3CE-B4D6-4699-9F80-DD6715A6892E}
 		{87251377-EE85-4757-9E81-74B2312DF8DD} = {DB4DB3CE-B4D6-4699-9F80-DD6715A6892E}
 		{8EF4B810-A553-42A4-8B3D-1F38E75747A3} = {1E6C1B2F-5296-4F5B-9316-347A21E07548}
+		{3B4C6F65-182C-4906-AC39-BC6F40FCB3F4} = {68F60CFA-393E-4DA3-8971-EA7BBE6C7B51}
 	EndGlobalSection
 EndGlobal
