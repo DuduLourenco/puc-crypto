@@ -27,6 +27,11 @@ public sealed class Cryptocurrency
 
     public DateTime CreatedAt { get; private set; }
 
+    /// <summary>Último preço em dólar informado pelo MarketData (evento PricesIngested).</summary>
+    public decimal? LatestPriceUsd { get; private set; }
+
+    public DateTime? LatestPriceAt { get; private set; }
+
     public static Cryptocurrency Create(string symbol, string name, string coinGeckoId, DateTime createdAt) =>
         new(Guid.NewGuid(), NormalizeSymbol(symbol), name.Trim(), NormalizeCoinGeckoId(coinGeckoId), createdAt);
 
@@ -35,6 +40,23 @@ public sealed class Cryptocurrency
     {
         Symbol = NormalizeSymbol(symbol);
         Name = name.Trim();
+    }
+
+    /// <summary>
+    /// Guarda o preço apenas se ele for mais recente que o atual: os eventos podem
+    /// chegar fora de ordem.
+    /// </summary>
+    public bool UpdateLatestPrice(decimal priceUsd, DateTime at)
+    {
+        if (LatestPriceAt is not null && at <= LatestPriceAt)
+        {
+            return false;
+        }
+
+        LatestPriceUsd = priceUsd;
+        LatestPriceAt = at;
+
+        return true;
     }
 
     public static string NormalizeCoinGeckoId(string coinGeckoId) => coinGeckoId.Trim().ToLowerInvariant();

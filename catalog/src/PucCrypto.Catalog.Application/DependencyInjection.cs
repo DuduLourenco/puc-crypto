@@ -1,6 +1,7 @@
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using PucCrypto.BuildingBlocks.Abstractions.Endpoints;
+using PucCrypto.BuildingBlocks.Abstractions.Events;
 using PucCrypto.BuildingBlocks.Abstractions.Handlers;
 
 namespace PucCrypto.Catalog.Application;
@@ -14,6 +15,7 @@ public static class DependencyInjection
         services.AddEndpoints(assembly);
         services.AddHandlers(assembly);
         services.AddValidatorsFromAssembly(assembly, includeInternalTypes: true);
+        services.AddEventConsumers(assembly);
 
         return services;
     }

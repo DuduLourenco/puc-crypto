@@ -1,0 +1,88 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{0B639519-ACF2-4B3F-968B-278C4CB77EEB}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BuildingBlocks", "BuildingBlocks", "{EE427959-7BE7-4FF7-9308-CE9EAB70211E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PucCrypto.BuildingBlocks.Abstractions", "src\BuildingBlocks\PucCrypto.BuildingBlocks.Abstractions\PucCrypto.BuildingBlocks.Abstractions.csproj", "{7A90AC75-8D18-404A-A757-20B00E7870B2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PucCrypto.BuildingBlocks.Authentication", "src\BuildingBlocks\PucCrypto.BuildingBlocks.Authentication\PucCrypto.BuildingBlocks.Authentication.csproj", "{C91BDBEC-1858-4CA1-8A10-01388B50D543}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PucCrypto.BuildingBlocks.Messaging", "src\BuildingBlocks\PucCrypto.BuildingBlocks.Messaging\PucCrypto.BuildingBlocks.Messaging.csproj", "{B975369E-B0DC-410F-8653-B0CB61025D6C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PucCrypto.MarketData.Api", "src\PucCrypto.MarketData.Api\PucCrypto.MarketData.Api.csproj", "{914AAF58-F2A0-4345-8969-221CF08DD921}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PucCrypto.MarketData.Application", "src\PucCrypto.MarketData.Application\PucCrypto.MarketData.Application.csproj", "{D983E983-3A37-472C-9175-5E3A4C3061C6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PucCrypto.MarketData.Domain", "src\PucCrypto.MarketData.Domain\PucCrypto.MarketData.Domain.csproj", "{A75CACA5-A98A-46A8-BD86-80FD52E03023}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PucCrypto.MarketData.Infrastructure", "src\PucCrypto.MarketData.Infrastructure\PucCrypto.MarketData.Infrastructure.csproj", "{055384AD-51D1-4182-97E1-71DE53C7A08E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{A1E6DC3B-07AF-413D-B431-068CFBFFE6E1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PucCrypto.MarketData.ArchitectureTests", "tests\PucCrypto.MarketData.ArchitectureTests\PucCrypto.MarketData.ArchitectureTests.csproj", "{47C1C196-964C-412F-A8A7-47DD19AD6CF6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PucCrypto.MarketData.UnitTests", "tests\PucCrypto.MarketData.UnitTests\PucCrypto.MarketData.UnitTests.csproj", "{D2699E46-7E4D-4B91-A4A2-43B9CABE098A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7A90AC75-8D18-404A-A757-20B00E7870B2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7A90AC75-8D18-404A-A757-20B00E7870B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7A90AC75-8D18-404A-A757-20B00E7870B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7A90AC75-8D18-404A-A757-20B00E7870B2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C91BDBEC-1858-4CA1-8A10-01388B50D543}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C91BDBEC-1858-4CA1-8A10-01388B50D543}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C91BDBEC-1858-4CA1-8A10-01388B50D543}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C91BDBEC-1858-4CA1-8A10-01388B50D543}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B975369E-B0DC-410F-8653-B0CB61025D6C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B975369E-B0DC-410F-8653-B0CB61025D6C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B975369E-B0DC-410F-8653-B0CB61025D6C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B975369E-B0DC-410F-8653-B0CB61025D6C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{914AAF58-F2A0-4345-8969-221CF08DD921}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{914AAF58-F2A0-4345-8969-221CF08DD921}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{914AAF58-F2A0-4345-8969-221CF08DD921}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{914AAF58-F2A0-4345-8969-221CF08DD921}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D983E983-3A37-472C-9175-5E3A4C3061C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D983E983-3A37-472C-9175-5E3A4C3061C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D983E983-3A37-472C-9175-5E3A4C3061C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D983E983-3A37-472C-9175-5E3A4C3061C6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A75CACA5-A98A-46A8-BD86-80FD52E03023}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A75CACA5-A98A-46A8-BD86-80FD52E03023}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A75CACA5-A98A-46A8-BD86-80FD52E03023}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A75CACA5-A98A-46A8-BD86-80FD52E03023}.Release|Any CPU.Build.0 = Release|Any CPU
+		{055384AD-51D1-4182-97E1-71DE53C7A08E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{055384AD-51D1-4182-97E1-71DE53C7A08E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{055384AD-51D1-4182-97E1-71DE53C7A08E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{055384AD-51D1-4182-97E1-71DE53C7A08E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{47C1C196-964C-412F-A8A7-47DD19AD6CF6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{47C1C196-964C-412F-A8A7-47DD19AD6CF6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{47C1C196-964C-412F-A8A7-47DD19AD6CF6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{47C1C196-964C-412F-A8A7-47DD19AD6CF6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D2699E46-7E4D-4B91-A4A2-43B9CABE098A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D2699E46-7E4D-4B91-A4A2-43B9CABE098A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D2699E46-7E4D-4B91-A4A2-43B9CABE098A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D2699E46-7E4D-4B91-A4A2-43B9CABE098A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{EE427959-7BE7-4FF7-9308-CE9EAB70211E} = {0B639519-ACF2-4B3F-968B-278C4CB77EEB}
+		{7A90AC75-8D18-404A-A757-20B00E7870B2} = {EE427959-7BE7-4FF7-9308-CE9EAB70211E}
+		{C91BDBEC-1858-4CA1-8A10-01388B50D543} = {EE427959-7BE7-4FF7-9308-CE9EAB70211E}
+		{B975369E-B0DC-410F-8653-B0CB61025D6C} = {EE427959-7BE7-4FF7-9308-CE9EAB70211E}
+		{914AAF58-F2A0-4345-8969-221CF08DD921} = {0B639519-ACF2-4B3F-968B-278C4CB77EEB}
+		{D983E983-3A37-472C-9175-5E3A4C3061C6} = {0B639519-ACF2-4B3F-968B-278C4CB77EEB}
+		{A75CACA5-A98A-46A8-BD86-80FD52E03023} = {0B639519-ACF2-4B3F-968B-278C4CB77EEB}
+		{055384AD-51D1-4182-97E1-71DE53C7A08E} = {0B639519-ACF2-4B3F-968B-278C4CB77EEB}
+		{47C1C196-964C-412F-A8A7-47DD19AD6CF6} = {A1E6DC3B-07AF-413D-B431-068CFBFFE6E1}
+		{D2699E46-7E4D-4B91-A4A2-43B9CABE098A} = {A1E6DC3B-07AF-413D-B431-068CFBFFE6E1}
+	EndGlobalSection
+EndGlobal

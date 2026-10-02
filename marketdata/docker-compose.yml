@@ -1,0 +1,49 @@
+name: puccrypto-marketdata
+
+# Sobe o MarketData, o seu banco (MongoDB, equivalente local do Atlas) e o RabbitMQ.
+# Valores apenas para desenvolvimento local.
+
+services:
+  mongo:
+    image: mongo:7
+    ports:
+      - "127.0.0.1:27040:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  rabbitmq:
+    image: rabbitmq:4-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: puccrypto
+      RABBITMQ_DEFAULT_PASS: puccrypto_dev
+    ports:
+      - "127.0.0.1:5672:5672"
+      - "127.0.0.1:15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  marketdata-api:
+    build: .
+    environment:
+      ConnectionStrings__Database: mongodb://mongo:27017
+      Jwt__SigningKey: puccrypto-dev-only-signing-key-0123456789abcdef
+      RabbitMq__Uri: amqp://puccrypto:puccrypto_dev@rabbitmq:5672
+      Collector__ApiKey: puccrypto-dev-collector-key
+    ports:
+      - "127.0.0.1:5103:8080"
+    depends_on:
+      mongo:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+volumes:
+  mongo-data:

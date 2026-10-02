@@ -38,6 +38,15 @@ namespace PucCrypto.Catalog.Infrastructure.Persistence.Migrations
                         .HasColumnType("datetime2")
                         .HasColumnName("created_at");
 
+                    b.Property<DateTime?>("LatestPriceAt")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("latest_price_at");
+
+                    b.Property<decimal?>("LatestPriceUsd")
+                        .HasPrecision(28, 10)
+                        .HasColumnType("decimal(28,10)")
+                        .HasColumnName("latest_price_usd");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)

@@ -1,0 +1,11 @@
+# .NET
+bin/
+obj/
+TestResults/
+*.user
+.vs/
+.idea/
+
+# Ambiente
+.env
+.DS_Store

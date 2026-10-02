@@ -5,5 +5,8 @@ public enum ErrorType
     Validation,
     Unauthorized,
     NotFound,
-    Conflict
+    Conflict,
+
+    /// <summary>Uma dependência externa (ex.: API de preços) não respondeu.</summary>
+    Unavailable
 }

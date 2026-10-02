@@ -39,12 +39,14 @@ Os casos de uso são organizados em Vertical Slices. Cada pasta de `Application/
 
 Um item da lista de outro usuário responde 404.
 
-### Eventos publicados
+### Eventos
 
 | Evento | Quando | Campos |
 |---|---|---|
 | `CryptoRegistered` | Uma criptomoeda é cadastrada | `cryptocurrencyId`, `symbol`, `name`, `coinGeckoId`, `occurredAt` |
 | `CryptoRemoved` | Uma criptomoeda é excluída | `cryptocurrencyId`, `coinGeckoId`, `occurredAt` |
+
+O Catalog também consome `PricesIngested`, publicado pelo MarketData, na slice `UpdateLatestPrice`: guarda o último preço de cada criptomoeda (`latestPriceUsd`, `latestPriceAt`), que aparece nas respostas do catálogo e da lista. A fila é `catalog.PricesIngested`.
 
 Os eventos vão para a exchange `puccrypto.events` (tipo topic) do RabbitMQ, com o nome do evento como chave de roteamento e o corpo em JSON.
 
@@ -52,7 +54,7 @@ Os eventos vão para a exchange `puccrypto.events` (tipo topic) do RabbitMQ, com
 
 | Tabela | Colunas |
 |---|---|
-| `cryptocurrencies` | `id`, `symbol`, `name`, `coingecko_id` (único), `created_at` |
+| `cryptocurrencies` | `id`, `symbol`, `name`, `coingecko_id` (único), `latest_price_usd`, `latest_price_at`, `created_at` |
 | `user_cryptos` | `id`, `user_id` (sem FK: o usuário pertence ao Identity), `cryptocurrency_id` (FK), `notes`, `added_at` |
 
 `src/BuildingBlocks` contém o código de apoio comum aos serviços .NET do PucCrypto (contratos de handler, `Result`, endpoints, validação, mensageria e autenticação), copiado para este repositório.
@@ -106,6 +108,7 @@ Em Macs com processador ARM, a imagem do SQL Server roda por emulação (Rosetta
 | `Jwt__SigningKey`, `Jwt__Issuer`, `Jwt__Audience` | Validação do JWT emitido pelo Identity |
 | `RabbitMq__Uri` | Endereço do broker: `amqp://` local ou `amqps://` na nuvem |
 | `RabbitMq__Exchange` | Exchange dos eventos (padrão `puccrypto.events`) |
+| `RabbitMq__ServiceName` | Prefixo das filas consumidas (padrão `catalog`) |
 
 As migrations do banco são aplicadas quando a API inicia.
 
@@ -115,7 +118,7 @@ As migrations do banco são aplicadas quando a API inicia.
 dotnet test
 ```
 
-- `tests/PucCrypto.Catalog.UnitTests`: entidades, os dez handlers e os validadores.
+- `tests/PucCrypto.Catalog.UnitTests`: entidades, os onze handlers e os validadores.
 - `tests/PucCrypto.Catalog.ArchitectureTests`: Domain não depende de nada; Application não depende de Infrastructure; slices não referenciam outras slices e seguem a convenção de nomes.
 
 ## Imagem Docker

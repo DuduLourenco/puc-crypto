@@ -40,6 +40,10 @@ As decisões 025 a 032 decorrem do enunciado final do PJBL ([enunciado-pjbl.md](
 | 032 | Swagger em todos os serviços | 3R | Aceita |
 | 033 | CRUD do catálogo separado da lista do usuário | 4R | Aceita |
 | 034 | Catalog em Azure SQL com EF Core, retentativa e datas em UTC | 4R | Aceita |
+| 035 | Consumo de eventos como entrada de slice, com uma reentrega | 5 | Aceita |
+| 036 | MarketData em MongoDB sem atributos do driver no Domain | 5 | Aceita |
+| 037 | Coleta da CoinGecko por endpoint protegido por chave | 5 | Aceita |
+| 038 | Catalog guarda o último preço a partir de `PricesIngested` | 5 | Aceita |
 
 ---
 
@@ -450,3 +454,51 @@ As decisões 025 a 032 decorrem do enunciado final do PJBL ([enunciado-pjbl.md](
 **Justificativa.** O SQL Server em contêiner é o mesmo motor do Azure SQL, roda sem custo e foi testado nesta máquina. A retentativa cobre o despertar do banco pausado sem código adicional. Sem o conversor, as datas voltariam do banco sem a indicação de UTC.
 
 **Consequências.** Domain e Application não mudaram com a troca de banco; apenas a Infrastructure e a migration. O contêiner emulado demora mais para iniciar. Com retentativa ativa, transações explícitas precisariam usar a estratégia de execução do EF Core; o Catalog não usa transações explícitas.
+
+## ADR-035 — Consumo de eventos como entrada de slice, com uma reentrega
+
+**Contexto.** O MarketData consome `CryptoRegistered` e `CryptoRemoved`, e o Catalog consome `PricesIngested`. Até aqui só existia o lado publicador da mensageria (ADR-005, ADR-023 e ADR-030).
+
+**Decisão.** Uma slice acionada por evento tem um `<Slice>Consumer`, que implementa `IEventConsumer<TEvent>`, monta o command e chama o handler, como o endpoint faz para HTTP. `AddEventConsumers` registra os consumidores do assembly e cria uma inscrição por evento. No RabbitMQ, `RabbitMqConsumerService` cria, para cada inscrição, uma fila durável `<servico>.<NomeDoEvento>` ligada à exchange pelo nome do evento, e entrega cada mensagem em um escopo próprio de injeção de dependência. Uma mensagem que falha é reentregue uma vez; se falhar de novo, é descartada e registrada no log. Os handlers acionados por eventos são idempotentes.
+
+**Alternativas.** Tratar a mensagem diretamente no serviço em segundo plano, fora das slices. Fila de mensagens mortas.
+
+**Justificativa.** Tratar o evento como mais uma entrada de slice mantém o mesmo padrão de endpoint, command e handler, e o mesmo teste de convenção de nomes. Uma fila por serviço e evento garante que cada consumidor receba sua cópia. A reentrega única cobre falhas passageiras sem prender a fila com uma mensagem que sempre falha.
+
+**Consequências.** Uma mensagem que falha duas vezes se perde; em produção, uma fila de mensagens mortas seria o adequado. Repetir um evento não duplica dados, porque os handlers usam upsert ou ignoram dados mais antigos.
+
+## ADR-036 — MarketData em MongoDB sem atributos do driver no Domain
+
+**Contexto.** O MarketData usa MongoDB (ADR-027). O driver costuma ser configurado por atributos nas classes, o que colocaria uma dependência do MongoDB no Domain.
+
+**Decisão.** O mapeamento é feito em `MongoMappings`, na Infrastructure, com `BsonClassMap`: nomes de campo em camelCase, preço em Decimal128, origem do preço como texto, GUIDs no formato padrão. As entidades são reconstruídas pelos seus construtores privados. Os índices são criados na inicialização da API. O histórico é gravado com upsert por (criptomoeda, instante).
+
+**Alternativas.** Atributos do driver nas entidades. Classes de documento separadas, com conversão para as entidades.
+
+**Justificativa.** O Domain continua sem dependências, o que o teste de arquitetura verifica. O mapeamento explícito evita duplicar cada entidade em uma classe de documento. Decimal128 preserva o valor exato do preço. O upsert torna a coleta e a carga inicial repetíveis.
+
+**Consequências.** Toda propriedade nova de uma entidade precisa ser mapeada em `MongoMappings`. Não há migrations: o esquema é o das classes, e os índices são criados de forma idempotente.
+
+## ADR-037 — Coleta da CoinGecko por endpoint protegido por chave
+
+**Contexto.** O enunciado indica a CoinGecko como fonte de preços e prevê, como opcional, uma Function agendada de coleta (decisão D7). A Function não tem usuário e, portanto, não tem JWT.
+
+**Decisão.** O MarketData expõe `POST /prices/collect`, que coleta o preço atual de todos os ativos em uma única chamada à CoinGecko e publica `PricesIngested` por ativo. A rota exige a chave configurada em `Collector:ApiKey` no cabeçalho `X-Api-Key`. A carga inicial de 90 dias acontece quando o MarketData recebe `CryptoRegistered`. O acesso à CoinGecko fica atrás da porta `IMarketPriceProvider`; o endereço é configurável, e a chave do plano Demo é opcional.
+
+**Alternativas.** Agendar a coleta dentro do próprio MarketData. Uma Function que acessasse diretamente o banco do MarketData.
+
+**Justificativa.** O agendamento fica na Function, que é o componente serverless do sistema, e a coleta, no serviço dono dos dados. Um contêiner em plano gratuito pode hibernar, o que interromperia um agendamento interno. A Function não acessa o banco de outro serviço.
+
+**Consequências.** A chave de coleta é um segredo compartilhado entre o MarketData e a Function. O endereço configurável permitiu testar o fluxo localmente com uma CoinGecko simulada, já que a API real está bloqueada pelo DNS da rede de desenvolvimento.
+
+## ADR-038 — Catalog guarda o último preço a partir de `PricesIngested`
+
+**Contexto.** Com a previsão passando a ser uma chamada HTTP (ADR-029), `PricesIngested` ficou sem consumidor. A lista do usuário se beneficia de mostrar o preço atual de cada criptomoeda (decisão D5).
+
+**Decisão.** O Catalog consome `PricesIngested` na slice `UpdateLatestPrice` e guarda `latestPriceUsd` e `latestPriceAt` na criptomoeda. Um preço mais antigo que o já guardado é ignorado, e um evento de uma criptomoeda já excluída também. Os dois campos aparecem nas respostas do catálogo e da lista do usuário.
+
+**Alternativas.** Publicar o evento sem consumidor. O Catalog consultar o MarketData a cada listagem.
+
+**Justificativa.** O evento passa a ter efeito visível, e o fluxo entre Catalog e MarketData fica nos dois sentidos, sem chamadas síncronas entre eles.
+
+**Consequências.** O último preço no Catalog é uma cópia com consistência eventual: pode estar alguns instantes atrás do MarketData. O histórico completo continua só no MarketData.

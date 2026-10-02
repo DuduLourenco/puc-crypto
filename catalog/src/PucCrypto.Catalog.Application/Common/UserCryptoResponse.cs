@@ -9,6 +9,8 @@ public sealed record UserCryptoResponse(
     string Symbol,
     string Name,
     string CoinGeckoId,
+    decimal? LatestPriceUsd,
+    DateTime? LatestPriceAt,
     string? Notes,
     DateTime AddedAt)
 {
@@ -18,6 +20,8 @@ public sealed record UserCryptoResponse(
         userCrypto.Cryptocurrency.Symbol,
         userCrypto.Cryptocurrency.Name,
         userCrypto.Cryptocurrency.CoinGeckoId,
+        userCrypto.Cryptocurrency.LatestPriceUsd,
+        userCrypto.Cryptocurrency.LatestPriceAt,
         userCrypto.Notes,
         userCrypto.AddedAt);
 }

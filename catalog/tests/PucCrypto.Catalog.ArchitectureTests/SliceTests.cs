@@ -1,6 +1,7 @@
 using FluentValidation;
 using NetArchTest.Rules;
 using PucCrypto.BuildingBlocks.Abstractions.Endpoints;
+using PucCrypto.BuildingBlocks.Abstractions.Events;
 using PucCrypto.BuildingBlocks.Abstractions.Handlers;
 using Xunit;
 
@@ -47,6 +48,7 @@ public sealed class SliceTests
                 type.IsAssignableTo(typeof(IEndpoint)) ? "Endpoint"
                 : type.IsAssignableTo(typeof(IValidator)) ? "Validator"
                 : ImplementsHandler(type) ? "Handler"
+                : ImplementsConsumer(type) ? "Consumer"
                 : null;
 
             if (expectedSuffix is null)
@@ -73,6 +75,10 @@ public sealed class SliceTests
             .Select(ns => string.Join('.', ns!.Split('.').Take(Layers.FeaturesNamespace.Split('.').Length + 1)))
             .Distinct()
             .ToArray();
+
+    private static bool ImplementsConsumer(Type type) =>
+        type.GetInterfaces().Any(contract =>
+            contract.IsGenericType && contract.GetGenericTypeDefinition() == typeof(IEventConsumer<>));
 
     private static bool ImplementsHandler(Type type) =>
         type.GetInterfaces().Any(contract =>

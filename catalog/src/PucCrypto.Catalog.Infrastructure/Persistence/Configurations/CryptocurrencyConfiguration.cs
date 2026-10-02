@@ -19,6 +19,10 @@ internal sealed class CryptocurrencyConfiguration : IEntityTypeConfiguration<Cry
         builder.Property(cryptocurrency => cryptocurrency.CreatedAt).HasColumnName("created_at")
             .HasConversion(UtcDateTimeConverter.Instance);
 
+        builder.Property(cryptocurrency => cryptocurrency.LatestPriceUsd).HasColumnName("latest_price_usd").HasPrecision(28, 10);
+        builder.Property(cryptocurrency => cryptocurrency.LatestPriceAt).HasColumnName("latest_price_at")
+            .HasConversion(UtcDateTimeConverter.Instance);
+
         builder.HasIndex(cryptocurrency => cryptocurrency.CoinGeckoId).IsUnique();
     }
 }
