@@ -11,7 +11,7 @@ internal sealed class RemoveUserCryptoEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapDelete("/cryptos/{id:guid}", async (
+        app.MapDelete("/user-cryptos/{id:guid}", async (
                 Guid id,
                 ClaimsPrincipal user,
                 ICommandHandler<RemoveUserCryptoCommand> handler,
@@ -23,6 +23,11 @@ internal sealed class RemoveUserCryptoEndpoint : IEndpoint
                     ? Results.NoContent()
                     : result.ToProblem();
             })
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .WithName("RemoveUserCrypto")
+            .WithTags("UserCryptos")
+            .WithSummary("Remove um item da lista do usuário autenticado.")
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesProblem(StatusCodes.Status404NotFound);
     }
 }

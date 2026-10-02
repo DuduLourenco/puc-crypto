@@ -12,7 +12,7 @@ internal sealed class GetUserCryptoEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/cryptos/{id:guid}", async (
+        app.MapGet("/user-cryptos/{id:guid}", async (
                 Guid id,
                 ClaimsPrincipal user,
                 IQueryHandler<GetUserCryptoQuery, UserCryptoResponse> handler,
@@ -24,6 +24,11 @@ internal sealed class GetUserCryptoEndpoint : IEndpoint
                     ? Results.Ok(result.Value)
                     : result.ToProblem();
             })
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .WithName("GetUserCrypto")
+            .WithTags("UserCryptos")
+            .WithSummary("Devolve um item da lista do usuário autenticado.")
+            .Produces<UserCryptoResponse>()
+            .ProducesProblem(StatusCodes.Status404NotFound);
     }
 }

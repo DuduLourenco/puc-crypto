@@ -28,7 +28,16 @@ public sealed class Cryptocurrency
     public DateTime CreatedAt { get; private set; }
 
     public static Cryptocurrency Create(string symbol, string name, string coinGeckoId, DateTime createdAt) =>
-        new(Guid.NewGuid(), symbol.Trim().ToUpperInvariant(), name.Trim(), NormalizeCoinGeckoId(coinGeckoId), createdAt);
+        new(Guid.NewGuid(), NormalizeSymbol(symbol), name.Trim(), NormalizeCoinGeckoId(coinGeckoId), createdAt);
+
+    /// <summary>O identificador na CoinGecko não muda: é por ele que o histórico de preços é coletado.</summary>
+    public void Update(string symbol, string name)
+    {
+        Symbol = NormalizeSymbol(symbol);
+        Name = name.Trim();
+    }
 
     public static string NormalizeCoinGeckoId(string coinGeckoId) => coinGeckoId.Trim().ToLowerInvariant();
+
+    private static string NormalizeSymbol(string symbol) => symbol.Trim().ToUpperInvariant();
 }

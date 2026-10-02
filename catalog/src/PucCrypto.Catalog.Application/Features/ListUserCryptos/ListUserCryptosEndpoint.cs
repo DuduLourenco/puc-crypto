@@ -12,7 +12,7 @@ internal sealed class ListUserCryptosEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/cryptos", async (
+        app.MapGet("/user-cryptos", async (
                 ClaimsPrincipal user,
                 IQueryHandler<ListUserCryptosQuery, IReadOnlyList<UserCryptoResponse>> handler,
                 CancellationToken cancellationToken) =>
@@ -23,6 +23,10 @@ internal sealed class ListUserCryptosEndpoint : IEndpoint
                     ? Results.Ok(result.Value)
                     : result.ToProblem();
             })
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .WithName("ListUserCryptos")
+            .WithTags("UserCryptos")
+            .WithSummary("Lista as criptomoedas monitoradas pelo usuário autenticado.")
+            .Produces<IReadOnlyList<UserCryptoResponse>>();
     }
 }

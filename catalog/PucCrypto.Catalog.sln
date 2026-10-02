@@ -25,6 +25,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{C02604CD
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PucCrypto.Catalog.ArchitectureTests", "tests\PucCrypto.Catalog.ArchitectureTests\PucCrypto.Catalog.ArchitectureTests.csproj", "{78216FA7-1C52-4153-96EC-8770506BCEE9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PucCrypto.Catalog.UnitTests", "tests\PucCrypto.Catalog.UnitTests\PucCrypto.Catalog.UnitTests.csproj", "{0DFF73BF-888E-41DF-BA15-F523B8DEACB8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -66,6 +68,10 @@ Global
 		{78216FA7-1C52-4153-96EC-8770506BCEE9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{78216FA7-1C52-4153-96EC-8770506BCEE9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{78216FA7-1C52-4153-96EC-8770506BCEE9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0DFF73BF-888E-41DF-BA15-F523B8DEACB8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0DFF73BF-888E-41DF-BA15-F523B8DEACB8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0DFF73BF-888E-41DF-BA15-F523B8DEACB8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0DFF73BF-888E-41DF-BA15-F523B8DEACB8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{130F6952-165E-4205-A609-A57C1FD99763} = {EB46C089-1D79-4399-8877-9DA8063D6BB9}
@@ -77,5 +83,6 @@ Global
 		{C79EBB91-B1B5-4FB0-9EC8-3BAA29EEC17D} = {EB46C089-1D79-4399-8877-9DA8063D6BB9}
 		{5A3FF103-D378-4AC2-B8D4-DCB816329267} = {EB46C089-1D79-4399-8877-9DA8063D6BB9}
 		{78216FA7-1C52-4153-96EC-8770506BCEE9} = {C02604CD-D21C-48D6-8513-6D60881A50FB}
+		{0DFF73BF-888E-41DF-BA15-F523B8DEACB8} = {C02604CD-D21C-48D6-8513-6D60881A50FB}
 	EndGlobalSection
 EndGlobal

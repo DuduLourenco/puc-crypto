@@ -38,6 +38,8 @@ As decisões 025 a 032 decorrem do enunciado final do PJBL ([enunciado-pjbl.md](
 | 030 | RabbitMQ gerenciado como broker da nuvem | 3R | Aceita |
 | 031 | Testes unitários e de arquitetura em cada repositório | 3R | Aceita |
 | 032 | Swagger em todos os serviços | 3R | Aceita |
+| 033 | CRUD do catálogo separado da lista do usuário | 4R | Aceita |
+| 034 | Catalog em Azure SQL com EF Core, retentativa e datas em UTC | 4R | Aceita |
 
 ---
 
@@ -424,3 +426,27 @@ As decisões 025 a 032 decorrem do enunciado final do PJBL ([enunciado-pjbl.md](
 **Justificativa.** A demonstração e os prints exigidos usam as URLs da nuvem, portanto o Swagger precisa estar disponível lá.
 
 **Consequências.** A documentação da API fica exposta publicamente, o que é aceitável para um projeto acadêmico. A descrição do endpoint fica junto do código que ele documenta.
+
+## ADR-033 — CRUD do catálogo separado da lista do usuário
+
+**Contexto.** Na fase 4 original, uma criptomoeda entrava no catálogo de forma implícita, quando o primeiro usuário a adicionava à sua lista. O enunciado final exige CRUD completo no microsserviço e o grupo pediu os eventos `CryptoRegistered` e `CryptoRemoved` (decisão D4 da análise de impacto).
+
+**Decisão.** O Catalog tem dois recursos. `/cryptos` é o CRUD do catálogo (`CreateCrypto`, `ListCryptos`, `GetCrypto`, `UpdateCrypto`, `DeleteCrypto`); `CreateCrypto` publica `CryptoRegistered` e `DeleteCrypto` publica `CryptoRemoved`. `/user-cryptos` é a lista do usuário (`AddUserCrypto`, `ListUserCryptos`, `GetUserCrypto`, `UpdateUserCrypto`, `RemoveUserCrypto`) e referencia uma criptomoeda já cadastrada. O `coinGeckoId` não pode ser alterado. A exclusão de uma criptomoeda que está na lista de algum usuário é recusada com 409.
+
+**Alternativas.** Manter a criação implícita e publicar `CryptoRemoved` quando o último usuário removesse a moeda. Excluir em cascata os itens das listas.
+
+**Justificativa.** Dois recursos com CRUD próprio correspondem à leitura literal do enunciado e deixam claro quando cada evento acontece. Bloquear a exclusão evita que um usuário apague itens da lista de outros. O `coinGeckoId` é a chave pela qual o MarketData coleta o histórico; mudá-lo exigiria outro evento.
+
+**Consequências.** Para excluir uma criptomoeda, ela precisa sair antes de todas as listas. Qualquer usuário autenticado pode manter o catálogo, pois não há papéis de administrador.
+
+## ADR-034 — Catalog em Azure SQL com EF Core, retentativa e datas em UTC
+
+**Contexto.** O enunciado exige Azure SQL Database (plano gratuito) para o microsserviço SQL. O plano gratuito pausa o banco quando ocioso, e a primeira conexão depois da pausa pode falhar. A máquina de desenvolvimento é ARM64, e a imagem do SQL Server é apenas x64.
+
+**Decisão.** O Catalog usa `Microsoft.EntityFrameworkCore.SqlServer` com `EnableRetryOnFailure`. No ambiente local, o banco é um SQL Server 2022 em contêiner, executado por emulação. As datas são gravadas em UTC e um conversor as marca como UTC na leitura. As migrations continuam sendo aplicadas na inicialização (ADR-019).
+
+**Alternativas.** Desenvolver direto contra o Azure SQL. Azure SQL Edge, que tem imagem ARM64 mas foi descontinuado.
+
+**Justificativa.** O SQL Server em contêiner é o mesmo motor do Azure SQL, roda sem custo e foi testado nesta máquina. A retentativa cobre o despertar do banco pausado sem código adicional. Sem o conversor, as datas voltariam do banco sem a indicação de UTC.
+
+**Consequências.** Domain e Application não mudaram com a troca de banco; apenas a Infrastructure e a migration. O contêiner emulado demora mais para iniciar. Com retentativa ativa, transações explícitas precisariam usar a estratégia de execução do EF Core; o Catalog não usa transações explícitas.

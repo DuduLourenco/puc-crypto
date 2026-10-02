@@ -9,20 +9,36 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      IDENTITY_DB_PASSWORD: ${IDENTITY_DB_PASSWORD}
-      CATALOG_DB_PASSWORD: ${CATALOG_DB_PASSWORD}
+      POSTGRES_DB: identity_db
+      POSTGRES_USER: identity_user
+      POSTGRES_PASSWORD: ${IDENTITY_DB_PASSWORD}
     ports:
       - "127.0.0.1:5440:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
-      - ./infra/local/postgres/init-databases.sh:/docker-entrypoint-initdb.d/init-databases.sh:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U identity_user -d identity_db"]
       interval: 5s
       timeout: 3s
       retries: 10
+
+  # Equivalente local do Azure SQL Database. A imagem é x64 e roda por emulação em Macs ARM.
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    platform: linux/amd64
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
+    ports:
+      - "127.0.0.1:1440:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$${MSSQL_SA_PASSWORD}\" -C -Q 'SELECT 1' -b -o /dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 20s
 
   rabbitmq:
     image: rabbitmq:4-management-alpine
@@ -53,18 +69,17 @@ services:
   catalog-api:
     build: ./catalog
     environment:
-      ConnectionStrings__Database: Host=postgres;Port=5432;Database=catalog_db;Username=catalog_user;Password=${CATALOG_DB_PASSWORD}
+      ConnectionStrings__Database: Server=sqlserver,1433;Database=catalog_db;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True
       Jwt__SigningKey: ${JWT_SIGNING_KEY}
-      RabbitMq__Host: rabbitmq
-      RabbitMq__Username: ${RABBITMQ_USER}
-      RabbitMq__Password: ${RABBITMQ_PASSWORD}
+      RabbitMq__Uri: amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672
     ports:
       - "127.0.0.1:5102:8080"
     depends_on:
-      postgres:
+      sqlserver:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
 
 volumes:
   postgres-data:
+  sqlserver-data:

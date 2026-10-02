@@ -2,8 +2,8 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using PucCrypto.Catalog.Infrastructure.Persistence;
 
 #nullable disable
@@ -18,36 +18,36 @@ namespace PucCrypto.Catalog.Infrastructure.Persistence.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "8.0.31")
-                .HasAnnotation("Relational:MaxIdentifierLength", 63);
+                .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
-            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
             modelBuilder.Entity("PucCrypto.Catalog.Domain.Cryptocurrencies.Cryptocurrency", b =>
                 {
                     b.Property<Guid>("Id")
-                        .HasColumnType("uuid")
+                        .HasColumnType("uniqueidentifier")
                         .HasColumnName("id");
 
                     b.Property<string>("CoinGeckoId")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
+                        .HasColumnType("nvarchar(100)")
                         .HasColumnName("coingecko_id");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("datetime2")
                         .HasColumnName("created_at");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
+                        .HasColumnType("nvarchar(100)")
                         .HasColumnName("name");
 
                     b.Property<string>("Symbol")
                         .IsRequired()
                         .HasMaxLength(10)
-                        .HasColumnType("character varying(10)")
+                        .HasColumnType("nvarchar(10)")
                         .HasColumnName("symbol");
 
                     b.HasKey("Id");
@@ -61,24 +61,24 @@ namespace PucCrypto.Catalog.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("PucCrypto.Catalog.Domain.UserCryptos.UserCrypto", b =>
                 {
                     b.Property<Guid>("Id")
-                        .HasColumnType("uuid")
+                        .HasColumnType("uniqueidentifier")
                         .HasColumnName("id");
 
                     b.Property<DateTime>("AddedAt")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("datetime2")
                         .HasColumnName("added_at");
 
                     b.Property<Guid>("CryptocurrencyId")
-                        .HasColumnType("uuid")
+                        .HasColumnType("uniqueidentifier")
                         .HasColumnName("cryptocurrency_id");
 
                     b.Property<string>("Notes")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
+                        .HasColumnType("nvarchar(500)")
                         .HasColumnName("notes");
 
                     b.Property<Guid>("UserId")
-                        .HasColumnType("uuid")
+                        .HasColumnType("uniqueidentifier")
                         .HasColumnName("user_id");
 
                     b.HasKey("Id");

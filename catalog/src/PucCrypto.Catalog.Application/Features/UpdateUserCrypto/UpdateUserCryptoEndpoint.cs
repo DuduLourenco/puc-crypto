@@ -12,7 +12,7 @@ internal sealed class UpdateUserCryptoEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPut("/cryptos/{id:guid}", async (
+        app.MapPut("/user-cryptos/{id:guid}", async (
                 Guid id,
                 UpdateUserCryptoRequest request,
                 ClaimsPrincipal user,
@@ -28,6 +28,12 @@ internal sealed class UpdateUserCryptoEndpoint : IEndpoint
                     : result.ToProblem();
             })
             .WithValidation<UpdateUserCryptoRequest>()
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .WithName("UpdateUserCrypto")
+            .WithTags("UserCryptos")
+            .WithSummary("Altera as anotações de um item da lista do usuário autenticado.")
+            .Produces<UserCryptoResponse>()
+            .ProducesValidationProblem()
+            .ProducesProblem(StatusCodes.Status404NotFound);
     }
 }

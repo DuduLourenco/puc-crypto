@@ -17,7 +17,7 @@ internal sealed class RemoveUserCryptoHandler(IUserCryptoRepository userCryptoRe
             return UserCryptoErrors.NotFound;
         }
 
-        // A criptomoeda permanece no catálogo: outros usuários podem monitorá-la.
+        // A criptomoeda permanece no catálogo: só o item da lista do usuário é removido.
         await userCryptoRepository.RemoveAsync(userCrypto, cancellationToken);
 
         return Result.Success();

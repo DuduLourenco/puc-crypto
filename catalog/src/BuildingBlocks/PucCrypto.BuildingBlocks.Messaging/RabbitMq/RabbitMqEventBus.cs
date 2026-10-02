@@ -81,13 +81,7 @@ internal sealed class RabbitMqEventBus(IOptions<RabbitMqOptions> options) : IEve
                 return _connection;
             }
 
-            var factory = new ConnectionFactory
-            {
-                HostName = _options.Host,
-                Port = _options.Port,
-                UserName = _options.Username,
-                Password = _options.Password
-            };
+            var factory = new ConnectionFactory { Uri = new Uri(_options.Uri) };
 
             _connection = await factory.CreateConnectionAsync(cancellationToken);
 

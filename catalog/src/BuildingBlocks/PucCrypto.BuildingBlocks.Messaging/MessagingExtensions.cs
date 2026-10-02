@@ -6,10 +6,15 @@ namespace PucCrypto.BuildingBlocks.Messaging;
 
 public static class MessagingExtensions
 {
-    /// <summary>Registra o <see cref="IEventBus"/> sobre o broker configurado (RabbitMQ no ambiente local).</summary>
+    /// <summary>Registra o <see cref="IEventBus"/> sobre o RabbitMQ configurado em RabbitMq:Uri.</summary>
     public static IServiceCollection AddMessaging(this IServiceCollection services)
     {
-        services.AddOptions<RabbitMqOptions>().BindConfiguration(RabbitMqOptions.SectionName);
+        services.AddOptions<RabbitMqOptions>()
+            .BindConfiguration(RabbitMqOptions.SectionName)
+            .Validate(
+                options => Uri.TryCreate(options.Uri, UriKind.Absolute, out var uri) && uri.Scheme is "amqp" or "amqps",
+                "RabbitMq:Uri deve ser um endereço amqp:// ou amqps://.")
+            .ValidateOnStart();
         services.AddSingleton<IEventBus, RabbitMqEventBus>();
 
         return services;

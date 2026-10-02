@@ -24,9 +24,11 @@ internal sealed class UserCryptoRepository(CatalogDbContext dbContext) : IUserCr
             userCrypto => userCrypto.UserId == userId && userCrypto.CryptocurrencyId == cryptocurrencyId,
             cancellationToken);
 
+    public Task<bool> AnyByCryptocurrencyAsync(Guid cryptocurrencyId, CancellationToken cancellationToken) =>
+        dbContext.UserCryptos.AnyAsync(userCrypto => userCrypto.CryptocurrencyId == cryptocurrencyId, cancellationToken);
+
     public async Task AddAsync(UserCrypto userCrypto, CancellationToken cancellationToken)
     {
-        // Uma criptomoeda nova é incluída junto, pelo relacionamento, no mesmo SaveChanges.
         dbContext.UserCryptos.Add(userCrypto);
         await dbContext.SaveChangesAsync(cancellationToken);
     }

@@ -1,0 +1,53 @@
+name: puccrypto-catalog
+
+# Sobe o Catalog, o seu banco (SQL Server, equivalente local do Azure SQL) e o RabbitMQ.
+# Valores apenas para desenvolvimento local.
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    platform: linux/amd64
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: PucCrypto_dev_123
+    ports:
+      - "127.0.0.1:1440:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P PucCrypto_dev_123 -C -Q 'SELECT 1' -b -o /dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 20s
+
+  rabbitmq:
+    image: rabbitmq:4-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: puccrypto
+      RABBITMQ_DEFAULT_PASS: puccrypto_dev
+    ports:
+      - "127.0.0.1:5672:5672"
+      - "127.0.0.1:15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  catalog-api:
+    build: .
+    environment:
+      ConnectionStrings__Database: Server=sqlserver,1433;Database=catalog_db;User Id=sa;Password=PucCrypto_dev_123;TrustServerCertificate=True
+      Jwt__SigningKey: puccrypto-dev-only-signing-key-0123456789abcdef
+      RabbitMq__Uri: amqp://puccrypto:puccrypto_dev@rabbitmq:5672
+    ports:
+      - "127.0.0.1:5102:8080"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+volumes:
+  sqlserver-data:

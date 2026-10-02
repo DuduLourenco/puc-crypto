@@ -16,7 +16,8 @@ internal sealed class CryptocurrencyConfiguration : IEntityTypeConfiguration<Cry
         builder.Property(cryptocurrency => cryptocurrency.Symbol).HasColumnName("symbol").HasMaxLength(Cryptocurrency.SymbolMaxLength);
         builder.Property(cryptocurrency => cryptocurrency.Name).HasColumnName("name").HasMaxLength(Cryptocurrency.NameMaxLength);
         builder.Property(cryptocurrency => cryptocurrency.CoinGeckoId).HasColumnName("coingecko_id").HasMaxLength(Cryptocurrency.CoinGeckoIdMaxLength);
-        builder.Property(cryptocurrency => cryptocurrency.CreatedAt).HasColumnName("created_at");
+        builder.Property(cryptocurrency => cryptocurrency.CreatedAt).HasColumnName("created_at")
+            .HasConversion(UtcDateTimeConverter.Instance);
 
         builder.HasIndex(cryptocurrency => cryptocurrency.CoinGeckoId).IsUnique();
     }

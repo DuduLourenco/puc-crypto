@@ -15,11 +15,11 @@ namespace PucCrypto.Catalog.Infrastructure.Persistence.Migrations
                 name: "cryptocurrencies",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "uuid", nullable: false),
-                    symbol = table.Column<string>(type: "character varying(10)", maxLength: 10, nullable: false),
-                    name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    coingecko_id = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    symbol = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
+                    name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    coingecko_id = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    created_at = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -30,11 +30,11 @@ namespace PucCrypto.Catalog.Infrastructure.Persistence.Migrations
                 name: "user_cryptos",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "uuid", nullable: false),
-                    user_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    cryptocurrency_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    notes = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    added_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    user_id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    cryptocurrency_id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    notes = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    added_at = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {

@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/PucCrypto.Catalog.Domain/PucCrypto.Catalog.Domain.csproj" />
+    <ProjectReference Include="../../src/PucCrypto.Catalog.Application/PucCrypto.Catalog.Application.csproj" />
+    <ProjectReference Include="../../src/PucCrypto.Catalog.Infrastructure/PucCrypto.Catalog.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

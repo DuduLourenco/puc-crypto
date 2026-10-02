@@ -18,7 +18,8 @@ internal sealed class UserCryptoConfiguration : IEntityTypeConfiguration<UserCry
         builder.Property(userCrypto => userCrypto.UserId).HasColumnName("user_id");
         builder.Property(userCrypto => userCrypto.CryptocurrencyId).HasColumnName("cryptocurrency_id");
         builder.Property(userCrypto => userCrypto.Notes).HasColumnName("notes").HasMaxLength(UserCrypto.NotesMaxLength);
-        builder.Property(userCrypto => userCrypto.AddedAt).HasColumnName("added_at");
+        builder.Property(userCrypto => userCrypto.AddedAt).HasColumnName("added_at")
+            .HasConversion(UtcDateTimeConverter.Instance);
 
         builder.HasOne(userCrypto => userCrypto.Cryptocurrency)
             .WithMany()
