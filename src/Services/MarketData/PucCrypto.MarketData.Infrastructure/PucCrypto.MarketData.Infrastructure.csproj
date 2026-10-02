@@ -1,8 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
-  <ItemGroup>
-    <ProjectReference Include="../PucCrypto.MarketData.Application/PucCrypto.MarketData.Application.csproj" />
-    <ProjectReference Include="../../../BuildingBlocks/PucCrypto.BuildingBlocks.Messaging/PucCrypto.BuildingBlocks.Messaging.csproj" />
-  </ItemGroup>
-
-</Project>

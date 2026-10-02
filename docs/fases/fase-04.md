@@ -1,5 +1,7 @@
 # Fase 4 — Serviço Catalog e publicação de eventos
 
+> **Nota.** Após a [fase 3R](fase-03R.md), o Catalog fica em `catalog/`. O serviço será revisto para o enunciado final: Azure SQL, CRUD explícito de criptomoedas e evento `CryptoRemoved`.
+
 Esta fase entrega o serviço Catalog, com o CRUD de criptomoedas monitoradas por usuário, seguindo o mesmo padrão do Identity. Entrega também a mensageria: a porta `IEventBus`, o adaptador RabbitMQ e o primeiro evento, `CryptoRegistered`.
 
 ## 1. Endpoints

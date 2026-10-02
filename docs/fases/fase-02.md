@@ -1,5 +1,7 @@
 # Fase 2 — Scaffold da solução
 
+> **Nota.** A estrutura de projetos e o Compose descritos aqui foram reorganizados na [fase 3R](fase-03R.md). Gateway YARP, BFF .NET e os projetos vazios de MarketData e Prediction foram removidos.
+
 Esta fase cria a solução .NET com todos os projetos vazios, o ambiente local em Docker Compose, os quatro bancos e o Gateway com as rotas iniciais. Ainda não há regra de negócio: cada API responde apenas `GET /health`.
 
 ## 1. Componentes criados

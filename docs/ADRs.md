@@ -2,32 +2,42 @@
 
 Cada decisão registra o contexto, o que foi decidido, as alternativas consideradas e a justificativa. O arquivo recebe novas entradas ao fim de cada fase. Uma decisão revista não é apagada: ganha o status "Substituída" e aponta para a nova.
 
+As decisões 025 a 032 decorrem do enunciado final do PJBL ([enunciado-pjbl.md](enunciado-pjbl.md)); a comparação com a arquitetura anterior está em [analise-impacto-pjbl.md](analise-impacto-pjbl.md).
+
 | ADR | Título | Fase | Status |
 |---|---|---|---|
-| 001 | Monorepo único | 1 | Aceita |
+| 001 | Monorepo único | 1 | Substituída pelo ADR-025 |
 | 002 | Clean Architecture + Vertical Slice com a slice completa em Application | 1 | Aceita |
 | 003 | Interfaces próprias de handler | 1 | Aceita |
-| 004 | Um servidor PostgreSQL com um banco e um usuário por serviço | 1 | Aceita |
-| 005 | Abstração própria de mensageria com JSON simples | 1 | Aceita |
-| 006 | Azure Functions como parte do serviço dono | 1 | Aceita |
-| 007 | Gateway expõe apenas Identity e BFF | 1 | Aceita |
+| 004 | Um servidor PostgreSQL com um banco e um usuário por serviço | 1 | Substituída pelo ADR-027 |
+| 005 | Abstração própria de mensageria com JSON simples | 1 | Alterada pelos ADR-026 e ADR-030 |
+| 006 | Azure Functions como parte do serviço dono | 1 | Substituída pelo ADR-029 |
+| 007 | Gateway expõe apenas Identity e BFF | 1 | Substituída pelo ADR-028 |
 | 008 | Tabela `TrackedAsset` no MarketData | 1 | Aceita |
-| 009 | Prediction lê o histórico pela API do MarketData | 1 | Aceita |
-| 010 | Prediction em ML.NET | 1 | Aceita, com verificação pendente |
+| 009 | Prediction lê o histórico pela API do MarketData | 1 | Substituída pelo ADR-029 |
+| 010 | Prediction em ML.NET | 1 | Alterada pelo ADR-029 |
 | 011 | .NET 8 | 1 | Aceita |
 | 012 | Microfrontends com Module Federation e npm workspaces | 1 | Aceita |
-| 013 | Testes de arquitetura em um único projeto | 1 | Aceita |
-| 014 | Configuração de build e versões de pacotes centralizadas | 2 | Aceita |
-| 015 | Dockerfile único parametrizado para os serviços .NET | 2 | Aceita |
-| 016 | Rotas do Gateway com prefixo `/api` removido | 2 | Aceita |
-| 017 | JWT assinado com HS256 e validado no Gateway | 3 | Aceita |
+| 013 | Testes de arquitetura em um único projeto | 1 | Substituída pelo ADR-031 |
+| 014 | Configuração de build e versões de pacotes centralizadas | 2 | Alterada pelo ADR-025 |
+| 015 | Dockerfile único parametrizado para os serviços .NET | 2 | Substituída pelo ADR-025 |
+| 016 | Rotas do Gateway com prefixo `/api` removido | 2 | Substituída pelo ADR-028 |
+| 017 | JWT assinado com HS256 e validado no Gateway | 3 | Alterada pelo ADR-028 |
 | 018 | Falhas como `Result` e validação por filtro de endpoint | 3 | Aceita |
 | 019 | Migrations do EF Core aplicadas na inicialização da API | 3 | Aceita |
 | 020 | Senhas com BCrypt | 3 | Aceita |
 | 021 | Serviços validam o JWT repassado | 4 | Aceita |
 | 022 | Evento publicado após a gravação, sem outbox | 4 | Aceita |
-| 023 | Topologia de eventos: uma exchange topic e nome do evento como chave | 4 | Aceita |
+| 023 | Topologia de eventos: uma exchange topic e nome do evento como chave | 4 | Alterada pelo ADR-030 |
 | 024 | Código comum a várias slices em `Application/Common` | 4 | Aceita |
+| 025 | Repositórios separados, com este repositório como área de trabalho | 3R | Aceita |
+| 026 | Código compartilhado copiado em cada repositório | 3R | Aceita |
+| 027 | Um tipo de banco por serviço | 3R | Aceita |
+| 028 | Gateway gerenciado na nuvem, apenas na frente do BFF | 3R | Aceita |
+| 029 | Previsão como Azure Function HTTP, sem banco | 3R | Aceita |
+| 030 | RabbitMQ gerenciado como broker da nuvem | 3R | Aceita |
+| 031 | Testes unitários e de arquitetura em cada repositório | 3R | Aceita |
+| 032 | Swagger em todos os serviços | 3R | Aceita |
 
 ---
 
@@ -318,3 +328,99 @@ Cada decisão registra o contexto, o que foi decidido, as alternativas considera
 **Justificativa.** Repetir quatro vezes o mesmo tipo e o mesmo mapeamento criaria divergência sem ganho. Uma pasta comum, pequena e explícita, mantém a regra de independência entre slices verificável por teste.
 
 **Consequências.** `Common` precisa permanecer restrito a tipos realmente compartilhados, para não virar um depósito de código.
+
+## ADR-025 — Repositórios separados, com este repositório como área de trabalho
+
+**Contexto.** O enunciado final exige repositórios públicos separados para microfrontend, BFF, cada microsserviço e a Azure Function. O projeto vinha sendo desenvolvido em um repositório único (ADR-001), com uma solução .NET e referências diretas entre projetos.
+
+**Decisão.** Este repositório passa a ter uma pasta autossuficiente por componente (`identity/`, `catalog/`, `marketdata/`, `forecast-function/`, `bff/`, `frontend/`). Cada pasta tem a sua solução, os seus arquivos de build, Dockerfile, README e testes, e não referencia nada fora dela. Cada pasta é exportada para o seu repositório público com `git subtree push`. A documentação comum, o `asyncapi.yaml`, o Compose do sistema completo e a configuração do Gateway ficam na raiz deste repositório.
+
+**Alternativas.** Criar os repositórios desde já e trabalhar em um clone de cada um.
+
+**Justificativa.** O desenvolvimento continua em um único lugar, com um commit por fase, e a entrega em repositórios separados é atendida pela exportação, que pode ser repetida a cada fase. O que é comum ao sistema tem um lugar que não pertence a nenhum componente.
+
+**Consequências.** Substitui o ADR-001 e o ADR-015 (cada pasta tem o seu Dockerfile) e altera o ADR-014 (a centralização de build passa a ser por pasta). A independência das pastas precisa ser mantida: uma referência entre elas quebraria a exportação.
+
+## ADR-026 — Código compartilhado copiado em cada repositório
+
+**Contexto.** `BuildingBlocks` e `Contracts` eram compartilhados por referência de projeto, o que não funciona entre repositórios.
+
+**Decisão.** Os projetos de `BuildingBlocks` são copiados para `src/BuildingBlocks` de cada serviço .NET que os utiliza. Os contratos de evento deixam de existir como projeto comum: cada serviço declara, na sua camada Application, os eventos que publica ou consome. O contrato comum entre os serviços passa a ser o documento `asyncapi.yaml`.
+
+**Alternativas.** Publicar os BuildingBlocks como pacote NuGet. Submódulo Git.
+
+**Justificativa.** Um pacote NuGet exigiria mais um repositório e um fluxo de publicação e versionamento. A cópia mantém cada repositório compilável sozinho, e a quantidade de código é pequena.
+
+**Consequências.** Uma correção nos BuildingBlocks precisa ser replicada nas cópias. Os serviços ficam acoplados apenas pelo formato das mensagens, descrito no AsyncAPI, e não por uma biblioteca comum.
+
+## ADR-027 — Um tipo de banco por serviço
+
+**Contexto.** O enunciado exige um microsserviço com MongoDB Atlas e outro com Azure SQL Database, e cita a integração com múltiplos bancos. O plano anterior usava um servidor PostgreSQL com um banco por serviço (ADR-004).
+
+**Decisão.** O Identity mantém o PostgreSQL. O Catalog passa a usar Azure SQL Database (SQL Server no ambiente local). O MarketData usa MongoDB Atlas (MongoDB no ambiente local). Continua valendo: nenhum serviço acessa o banco de outro e não há chaves entre bancos.
+
+**Alternativas.** Nenhuma compatível com o enunciado.
+
+**Justificativa.** Exigência do enunciado. O histórico de preços se ajusta bem a documentos, e o catálogo, com relacionamentos entre moeda e lista do usuário, a um banco relacional.
+
+**Consequências.** Substitui o ADR-004. No Catalog, a troca fica restrita à camada Infrastructure. O ambiente local passa a ter três bancos diferentes.
+
+## ADR-028 — Gateway gerenciado na nuvem, apenas na frente do BFF
+
+**Contexto.** O enunciado pede um API Gateway responsável por roteamento, segurança e centralização de entrada, e define que o frontend consome somente o BFF. O plano anterior tinha um Gateway próprio em YARP, que roteava para o Identity e para o BFF (ADR-007 e ADR-016).
+
+**Decisão.** O Gateway é um serviço gerenciado de API Gateway na nuvem, configurado para encaminhar todas as rotas ao BFF. O login deixa de ir do Gateway direto ao Identity: o BFF faz o proxy. O projeto YARP foi removido. No ambiente local não há Gateway; o frontend chama o BFF diretamente.
+
+**Alternativas.** Publicar o YARP como contêiner, em um repositório adicional.
+
+**Justificativa.** A lista de repositórios do enunciado não inclui um gateway, e o exemplo dado é um serviço gerenciado. Um serviço gerenciado atende roteamento, segurança e entrada única sem código próprio para manter.
+
+**Consequências.** Substitui o ADR-007 e o ADR-016 e altera o ADR-017: o JWT continua sendo validado por quem recebe a requisição (BFF, Catalog, MarketData), e a validação no Gateway passa a ser configuração do serviço gerenciado. O produto específico é definido na fase 9.
+
+## ADR-029 — Previsão como Azure Function HTTP, sem banco
+
+**Contexto.** O enunciado define a Azure Function como um componente exposto por HTTP, consumido pelo BFF em `/aggregated-data`. O plano anterior tinha um microsserviço Prediction com banco próprio e uma Function disparada por mensagem (ADR-006, ADR-009 e ADR-010).
+
+**Decisão.** A previsão passa a ser a Function `GetForecast`, com gatilho HTTP: recebe a série de preços e devolve a previsão na mesma chamada. Não há banco, e as entidades `Forecast` e `ModelRun` e o evento `ForecastGenerated` deixam de existir. O BFF busca o histórico no MarketData e o envia à Function. A linguagem do ML continua sendo .NET com ML.NET. A Function tem repositório próprio e segue as mesmas camadas dos serviços.
+
+**Alternativas.** Manter o microsserviço Prediction além da Function.
+
+**Justificativa.** Atende ao enunciado com menos componentes. Uma função sem estado, que só calcula, é o uso típico de serverless.
+
+**Consequências.** Substitui o ADR-006 e o ADR-009 e altera o ADR-010. A previsão é recalculada a cada chamada, o que exige limitar o tamanho da série. O evento `PricesIngested` perde o consumidor previsto; um novo consumidor é definido na fase 5.
+
+## ADR-030 — RabbitMQ gerenciado como broker da nuvem
+
+**Contexto.** Os eventos precisam de um broker acessível na nuvem, mantendo o RabbitMQ no ambiente local. O plano anterior previa Azure Service Bus na nuvem (ADR-005 e ADR-023).
+
+**Decisão.** Na nuvem, o broker é um RabbitMQ gerenciado. O mesmo adaptador de `IEventBus` atende o ambiente local e a nuvem, mudando apenas a configuração de conexão.
+
+**Alternativas.** Azure Service Bus, com um segundo adaptador.
+
+**Justificativa.** Tópicos no Service Bus exigem um plano pago e um adaptador que não poderia ser testado localmente. Um RabbitMQ gerenciado tem plano gratuito e usa o código já validado.
+
+**Consequências.** Altera o ADR-005 e o ADR-023: a topologia continua a mesma, e a correspondência com tópicos do Service Bus deixa de ser necessária. A abstração `IEventBus` permanece, de modo que outro broker ainda pode ser adotado com um novo adaptador. A conexão na nuvem exige TLS, a ser tratado no adaptador.
+
+## ADR-031 — Testes unitários e de arquitetura em cada repositório
+
+**Contexto.** O enunciado exige testes unitários e de arquitetura em todos os projetos. Antes havia um único projeto de testes de arquitetura para todos os serviços (ADR-013) e nenhum teste unitário.
+
+**Decisão.** Cada repositório .NET tem dois projetos de teste: `<Servico>.UnitTests` (xUnit) e `<Servico>.ArchitectureTests` (xUnit e NetArchTest). Os testes unitários usam dublês escritos à mão para as portas. O BFF usará as ferramentas equivalentes do ecossistema Node.
+
+**Alternativas.** Biblioteca de mocks para os testes unitários.
+
+**Justificativa.** As portas da camada Application são pequenas, e dublês explícitos deixam os testes legíveis sem acrescentar dependência.
+
+**Consequências.** Substitui o ADR-013. A regra "serviços não referenciam outros serviços" deixa de ser verificada por teste e passa a ser garantida pela separação dos repositórios. As regras de arquitetura são repetidas em cada repositório.
+
+## ADR-032 — Swagger em todos os serviços
+
+**Contexto.** O enunciado exige Swagger documentado no BFF e nos microsserviços.
+
+**Decisão.** Os serviços .NET usam Swashbuckle, com a interface em `/swagger`, habilitada em todos os ambientes. Cada endpoint declara, na própria slice, nome, resumo e respostas possíveis.
+
+**Alternativas.** Habilitar o Swagger apenas em desenvolvimento.
+
+**Justificativa.** A demonstração e os prints exigidos usam as URLs da nuvem, portanto o Swagger precisa estar disponível lá.
+
+**Consequências.** A documentação da API fica exposta publicamente, o que é aceitável para um projeto acadêmico. A descrição do endpoint fica junto do código que ele documenta.

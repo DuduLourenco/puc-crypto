@@ -1,0 +1,6 @@
+.git
+.env
+tests
+**/bin
+**/obj
+*.md

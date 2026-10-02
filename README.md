@@ -1,38 +1,55 @@
 # PucCrypto
 
-Projeto da disciplina de Arquitetura de Software. Site com cadastro e login, CRUD de criptomoedas monitoradas por usuário e dashboard com preço histórico e previsão por machine learning.
+Projeto PJBL da disciplina de Arquitetura de Software. Site com cadastro e login, CRUD de criptomoedas monitoradas por usuário e dashboard com preço histórico e previsão por machine learning.
 
-## Estilos arquiteturais
+Este repositório é a área de trabalho do projeto. Cada pasta de componente é autossuficiente e é publicada em um repositório próprio; aqui ficam também a documentação comum e o ambiente local do sistema completo.
 
-Microfrontend, API Gateway, BFF, Microservices com Database per Service, arquitetura orientada a eventos, Serverless e Clean Architecture com Vertical Slice, verificados por testes de arquitetura.
+## Componentes
 
-## Stack
+| Pasta | Componente | Tecnologia | Papel no enunciado | Estado |
+|---|---|---|---|---|
+| [identity/](identity/) | Identity | .NET 8, PostgreSQL | Acréscimo do grupo (login com JWT) | Pronto |
+| [catalog/](catalog/) | Catalog | .NET 8, Azure SQL | Microsserviço 2 (SQL) | Em revisão: ainda em PostgreSQL |
+| [marketdata/](marketdata/) | MarketData | .NET 8, MongoDB Atlas | Microsserviço 1 (MongoDB) | A fazer |
+| [forecast-function/](forecast-function/) | GetForecast | Azure Functions, ML.NET | Azure Function | A fazer |
+| [bff/](bff/) | BFF | NestJS | BFF Node.js | A fazer |
+| [frontend/](frontend/) | Shell e remotes | React, Vite, Module Federation | Microfrontend | A fazer |
 
-- Backend: .NET 8, YARP, Azure Functions, ML.NET
-- Frontend: React, Vite, Module Federation
-- Dados e mensageria: PostgreSQL, RabbitMQ (local), Azure Service Bus (nuvem)
-- Ambiente local: Docker Compose
+O API Gateway é um serviço gerenciado na nuvem, na frente do BFF.
 
-## Como executar
+## Fluxo
 
-Requisitos: Docker e SDK do .NET 8.
+1. O usuário acessa o microfrontend, que chama apenas o BFF, pelo API Gateway.
+2. O BFF repassa o login ao Identity e os CRUDs ao Catalog e ao MarketData.
+3. Em `GET /aggregated-data`, o BFF consulta o Catalog, o MarketData e a Function `GetForecast` e devolve um único JSON.
+4. Catalog e MarketData trocam eventos (`CryptoRegistered`, `CryptoRemoved`, `PricesIngested`) por um broker RabbitMQ.
+
+## Como executar o que já existe
+
+Requisitos: Docker. Para compilar e testar fora do Docker, SDK do .NET 8.
 
 ```bash
 cp .env.example .env
 docker compose up -d --build
-curl http://localhost:8080/health
 ```
 
-O Gateway responde em http://localhost:8080 e é o único ponto de entrada. Para compilar e rodar os testes de arquitetura fora do Docker: `dotnet test PucCrypto.sln`.
+- Identity: http://localhost:5101/swagger
+- Catalog: http://localhost:5102
+- Painel do RabbitMQ: http://localhost:15672
+
+Cada pasta tem a sua própria solução: `cd identity && dotnet test`.
 
 ## Documentação
 
-- [Fase 1 — estrutura do repositório e plano de fases](docs/fases/fase-01.md)
-- [Fase 2 — scaffold da solução](docs/fases/fase-02.md)
-- [Fase 3 — serviço Identity](docs/fases/fase-03.md)
-- [Fase 4 — serviço Catalog e publicação de eventos](docs/fases/fase-04.md)
+- [Enunciado do PJBL](docs/enunciado-pjbl.md)
+- [Análise de impacto do enunciado final](docs/analise-impacto-pjbl.md)
 - [Decisões de arquitetura (ADRs)](docs/ADRs.md)
+- Inventário por fase: [1](docs/fases/fase-01.md), [2](docs/fases/fase-02.md), [3](docs/fases/fase-03.md), [4](docs/fases/fase-04.md), [3R](docs/fases/fase-03R.md)
 
-## Estado
+As fases 1 a 4 descrevem a arquitetura anterior ao enunciado final. A fase 3R registra a reorganização.
 
-Fase 4 concluída: Identity (cadastro e login por JWT) e Catalog (CRUD de criptomoedas monitoradas, com publicação de `CryptoRegistered` no RabbitMQ). MarketData, Prediction e BFF ainda respondem apenas `/health`; por isso o CRUD ainda não é acessível pelo Gateway.
+## Alunos
+
+- _Nome do aluno 1_
+- _Nome do aluno 2_
+- _Nome do aluno 3_

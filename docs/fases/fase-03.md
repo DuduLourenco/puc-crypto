@@ -1,5 +1,7 @@
 # Fase 3 — Serviço Identity
 
+> **Nota.** Após a [fase 3R](fase-03R.md), o Identity fica em `identity/`, não há mais Gateway local e os testes passaram a ser por repositório. O comportamento do serviço não mudou.
+
 Esta fase entrega o serviço Identity completo, com cadastro e login por JWT. Ele é o modelo de referência de Clean Architecture + Vertical Slice que os demais serviços seguem. A fase também traz os primeiros testes de arquitetura e a validação do token no Gateway.
 
 ## 1. Endpoints

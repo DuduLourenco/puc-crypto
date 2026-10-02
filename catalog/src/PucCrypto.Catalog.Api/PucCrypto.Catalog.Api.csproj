@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../PucCrypto.Catalog.Application/PucCrypto.Catalog.Application.csproj" />
+    <ProjectReference Include="../PucCrypto.Catalog.Infrastructure/PucCrypto.Catalog.Infrastructure.csproj" />
+    <ProjectReference Include="../BuildingBlocks/PucCrypto.BuildingBlocks.Authentication/PucCrypto.BuildingBlocks.Authentication.csproj" />
+  </ItemGroup>
+
+</Project>

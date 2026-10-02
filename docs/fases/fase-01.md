@@ -1,5 +1,7 @@
 # Fase 1 — Estrutura do repositório e plano de fases
 
+> **Nota.** O plano e a estrutura descritos aqui foram revistos após o enunciado final do PJBL. Ver [analise-impacto-pjbl.md](../analise-impacto-pjbl.md) e [fase-03R.md](fase-03R.md).
+
 Esta fase define a organização do repositório, os componentes do sistema e a ordem de construção. Não há código nesta fase. As decisões e suas justificativas estão em [ADRs.md](../ADRs.md).
 
 ## 1. Visão geral
