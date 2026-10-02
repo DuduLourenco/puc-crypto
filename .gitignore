@@ -1,0 +1,21 @@
+# .NET
+bin/
+obj/
+TestResults/
+*.user
+.vs/
+.idea/
+
+# Azure Functions
+local.settings.json
+__azurite_db*
+__blobstorage__/
+__queuestorage__/
+
+# Node
+node_modules/
+dist/
+
+# Ambiente
+.env
+.DS_Store

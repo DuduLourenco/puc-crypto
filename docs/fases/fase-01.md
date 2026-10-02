@@ -17,6 +17,7 @@ puc-crypto/
 ├── .env.example
 ├── Directory.Build.props
 ├── Directory.Packages.props
+├── global.json
 ├── docs/
 │   ├── ADRs.md                         # decisão, alternativas, justificativa
 │   └── fases/fase-0N.md                # inventário de cada fase (insumo C4 e Arc42)
@@ -47,11 +48,12 @@ puc-crypto/
 ├── tests/
 │   └── PucCrypto.ArchitectureTests/                # uma classe por serviço + regras entre serviços
 └── infra/
-    ├── local/postgres/init-databases.sql           # cria os 4 bancos e os 4 usuários
+    ├── docker/dotnet-service.Dockerfile            # imagem do Gateway, do BFF e das APIs
+    ├── local/postgres/init-databases.sh            # cria os 4 bancos e os 4 usuários
     └── azure/                                      # Bicep (fase 9)
 ```
 
-As pastas de primeiro e segundo nível já existem no repositório, marcadas com `.gitkeep`. Os projetos entram na fase 2.
+A árvore foi ajustada na fase 2 (ver [fase-02.md](fase-02.md)): o script de bancos passou a ser `.sh`, para ler as senhas do ambiente, e surgiu `infra/docker`.
 
 ## 3. Padrão interno de cada serviço
 

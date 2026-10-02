@@ -1,0 +1,141 @@
+name: puccrypto
+
+# Ambiente local. Requer um arquivo .env (ver .env.example).
+# As portas dos serviços internos são publicadas apenas em 127.0.0.1, para
+# depuração; o ponto de entrada do sistema é o Gateway (porta 8080).
+
+x-dotnet-build: &dotnet-build
+  context: .
+  dockerfile: infra/docker/dotnet-service.Dockerfile
+
+services:
+  # ---------- Infraestrutura ----------
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      IDENTITY_DB_PASSWORD: ${IDENTITY_DB_PASSWORD}
+      CATALOG_DB_PASSWORD: ${CATALOG_DB_PASSWORD}
+      MARKETDATA_DB_PASSWORD: ${MARKETDATA_DB_PASSWORD}
+      PREDICTION_DB_PASSWORD: ${PREDICTION_DB_PASSWORD}
+    ports:
+      - "127.0.0.1:5440:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./infra/local/postgres/init-databases.sh:/docker-entrypoint-initdb.d/init-databases.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  rabbitmq:
+    image: rabbitmq:4-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    ports:
+      - "127.0.0.1:5672:5672"
+      - "127.0.0.1:15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    ports:
+      - "127.0.0.1:10000:10000"
+      - "127.0.0.1:10001:10001"
+      - "127.0.0.1:10002:10002"
+
+  # ---------- Borda ----------
+  gateway:
+    build:
+      <<: *dotnet-build
+      args:
+        PROJECT_DIR: Gateway
+        PROJECT_NAME: PucCrypto.Gateway
+    environment:
+      ReverseProxy__Clusters__identity__Destinations__default__Address: http://identity-api:8080
+      ReverseProxy__Clusters__bff__Destinations__default__Address: http://bff:8080
+    ports:
+      - "8080:8080"
+    depends_on:
+      - identity-api
+      - bff
+
+  bff:
+    build:
+      <<: *dotnet-build
+      args:
+        PROJECT_DIR: Bff
+        PROJECT_NAME: PucCrypto.Bff.Web
+    ports:
+      - "127.0.0.1:5100:8080"
+    depends_on:
+      - catalog-api
+      - marketdata-api
+      - prediction-api
+
+  # ---------- Microsserviços (um banco por serviço) ----------
+  identity-api:
+    build:
+      <<: *dotnet-build
+      args:
+        PROJECT_DIR: Services/Identity
+        PROJECT_NAME: PucCrypto.Identity.Api
+    environment:
+      ConnectionStrings__Database: Host=postgres;Port=5432;Database=identity_db;Username=identity_user;Password=${IDENTITY_DB_PASSWORD}
+    ports:
+      - "127.0.0.1:5101:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  catalog-api:
+    build:
+      <<: *dotnet-build
+      args:
+        PROJECT_DIR: Services/Catalog
+        PROJECT_NAME: PucCrypto.Catalog.Api
+    environment:
+      ConnectionStrings__Database: Host=postgres;Port=5432;Database=catalog_db;Username=catalog_user;Password=${CATALOG_DB_PASSWORD}
+    ports:
+      - "127.0.0.1:5102:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  marketdata-api:
+    build:
+      <<: *dotnet-build
+      args:
+        PROJECT_DIR: Services/MarketData
+        PROJECT_NAME: PucCrypto.MarketData.Api
+    environment:
+      ConnectionStrings__Database: Host=postgres;Port=5432;Database=marketdata_db;Username=marketdata_user;Password=${MARKETDATA_DB_PASSWORD}
+    ports:
+      - "127.0.0.1:5103:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  prediction-api:
+    build:
+      <<: *dotnet-build
+      args:
+        PROJECT_DIR: Services/Prediction
+        PROJECT_NAME: PucCrypto.Prediction.Api
+    environment:
+      ConnectionStrings__Database: Host=postgres;Port=5432;Database=prediction_db;Username=prediction_user;Password=${PREDICTION_DB_PASSWORD}
+    ports:
+      - "127.0.0.1:5104:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres-data:

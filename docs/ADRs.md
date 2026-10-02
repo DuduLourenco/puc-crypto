@@ -17,6 +17,9 @@ Cada decisão registra o contexto, o que foi decidido, as alternativas considera
 | 011 | .NET 8 | 1 | Aceita |
 | 012 | Microfrontends com Module Federation e npm workspaces | 1 | Aceita |
 | 013 | Testes de arquitetura em um único projeto | 1 | Aceita |
+| 014 | Configuração de build e versões de pacotes centralizadas | 2 | Aceita |
+| 015 | Dockerfile único parametrizado para os serviços .NET | 2 | Aceita |
+| 016 | Rotas do Gateway com prefixo `/api` removido | 2 | Aceita |
 
 ---
 
@@ -175,3 +178,39 @@ Cada decisão registra o contexto, o que foi decidido, as alternativas considera
 **Justificativa.** Um projeto único vê todos os assemblies, o que é necessário para as regras entre serviços, e roda com um único `dotnet test`. O NetArchTest cobre as regras exigidas com uma API mais simples.
 
 **Consequências.** O projeto de testes referencia todos os serviços. Ele é o único lugar em que isso é permitido.
+
+## ADR-014 — Configuração de build e versões de pacotes centralizadas
+
+**Contexto.** A solução tem 24 projetos que precisam usar a mesma versão do .NET e as mesmas versões de pacotes.
+
+**Decisão.** `Directory.Build.props` define o framework alvo e as opções de compilação de todos os projetos. `Directory.Packages.props` define as versões dos pacotes NuGet (Central Package Management). `global.json` fixa o SDK na linha 8.0.
+
+**Alternativas.** Repetir framework e versões em cada `.csproj`.
+
+**Justificativa.** Evita divergência de versões entre serviços e reduz cada `.csproj` às suas referências, o que deixa as dependências entre projetos fáceis de ler.
+
+**Consequências.** Um `.csproj` não declara versão de pacote; um pacote novo precisa ser registrado primeiro em `Directory.Packages.props`. Atualizar uma versão afeta todos os projetos de uma vez.
+
+## ADR-015 — Dockerfile único parametrizado para os serviços .NET
+
+**Contexto.** Gateway, BFF e as quatro APIs são aplicações ASP.NET Core com o mesmo processo de build.
+
+**Decisão.** Um único Dockerfile, `infra/docker/dotnet-service.Dockerfile`, recebe a pasta e o nome do projeto como argumentos de build. O contexto de build é a raiz do repositório.
+
+**Alternativas.** Um Dockerfile por projeto.
+
+**Justificativa.** Seis Dockerfiles seriam idênticos, exceto pelo nome do projeto. Um arquivo só mantém as imagens consistentes e serve tanto ao Compose quanto ao deploy na nuvem.
+
+**Consequências.** Cada imagem copia toda a pasta `src`, portanto uma alteração em qualquer projeto invalida o cache de build de todas. As Functions usam outra imagem base e terão Dockerfile próprio, se forem executadas em contêiner.
+
+## ADR-016 — Rotas do Gateway com prefixo `/api` removido
+
+**Contexto.** O Gateway precisa de uma convenção de caminhos que separe a autenticação do restante e que não vaze para os serviços.
+
+**Decisão.** Todas as rotas externas começam com `/api`. `/api/auth/*` vai para o Identity e as demais `/api/*` vão para o BFF. O Gateway remove o prefixo `/api` antes de encaminhar. As rotas ficam na configuração do YARP, não em código.
+
+**Alternativas.** Manter o prefixo completo nos serviços. Um prefixo por serviço (`/identity`, `/bff`).
+
+**Justificativa.** O frontend enxerga uma API única, sem saber quantos serviços existem. Os serviços definem caminhos próprios, independentes da convenção do Gateway.
+
+**Consequências.** O caminho visto pelo cliente difere do caminho visto pelo serviço, o que precisa aparecer nos diagramas de sequência. Uma rota nova do Identity fora de `/auth` exige ajuste na configuração do Gateway.

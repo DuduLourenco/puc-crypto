@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../PucCrypto.Prediction.Domain/PucCrypto.Prediction.Domain.csproj" />
+    <ProjectReference Include="../../../BuildingBlocks/PucCrypto.BuildingBlocks.Abstractions/PucCrypto.BuildingBlocks.Abstractions.csproj" />
+    <ProjectReference Include="../../../BuildingBlocks/PucCrypto.Contracts/PucCrypto.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

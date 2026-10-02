@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="../PucCrypto.BuildingBlocks.Abstractions/PucCrypto.BuildingBlocks.Abstractions.csproj" />
+  </ItemGroup>
+
+</Project>
