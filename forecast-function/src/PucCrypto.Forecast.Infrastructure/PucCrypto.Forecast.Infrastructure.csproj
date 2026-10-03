@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.ML" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../PucCrypto.Forecast.Application/PucCrypto.Forecast.Application.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="PucCrypto.Forecast.UnitTests" />
+  </ItemGroup>
+
+</Project>

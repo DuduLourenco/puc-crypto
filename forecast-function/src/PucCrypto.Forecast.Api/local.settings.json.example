@@ -1,0 +1,10 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+    "CollectPricesSchedule": "0 */30 * * * *",
+    "MarketData__BaseUrl": "http://localhost:5103/",
+    "MarketData__CollectorApiKey": "puccrypto-dev-collector-key"
+  }
+}

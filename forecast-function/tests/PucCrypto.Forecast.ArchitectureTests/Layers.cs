@@ -1,14 +1,14 @@
 using System.Reflection;
 
-namespace PucCrypto.Identity.ArchitectureTests;
+namespace PucCrypto.Forecast.ArchitectureTests;
 
 /// <summary>Namespaces e assemblies das camadas do serviço.</summary>
 internal static class Layers
 {
-    public const string DomainNamespace = "PucCrypto.Identity.Domain";
-    public const string ApplicationNamespace = "PucCrypto.Identity.Application";
-    public const string InfrastructureNamespace = "PucCrypto.Identity.Infrastructure";
-    public const string ApiNamespace = "PucCrypto.Identity.Api";
+    public const string DomainNamespace = "PucCrypto.Forecast.Domain";
+    public const string ApplicationNamespace = "PucCrypto.Forecast.Application";
+    public const string InfrastructureNamespace = "PucCrypto.Forecast.Infrastructure";
+    public const string ApiNamespace = "PucCrypto.Forecast.Api";
     public const string FeaturesNamespace = ApplicationNamespace + ".Features";
 
     /// <summary>Tecnologias de infraestrutura que não podem aparecer em Domain nem em Application.</summary>

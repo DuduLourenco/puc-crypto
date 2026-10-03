@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="NetArchTest.Rules" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/PucCrypto.Forecast.Domain/PucCrypto.Forecast.Domain.csproj" />
+    <ProjectReference Include="../../src/PucCrypto.Forecast.Application/PucCrypto.Forecast.Application.csproj" />
+    <ProjectReference Include="../../src/PucCrypto.Forecast.Infrastructure/PucCrypto.Forecast.Infrastructure.csproj" />
+    <ProjectReference Include="../../src/PucCrypto.Forecast.Api/PucCrypto.Forecast.Api.csproj" />
+  </ItemGroup>
+
+</Project>

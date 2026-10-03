@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Camada API: um Function App do Azure Functions (modelo isolated worker). -->
+  <PropertyGroup>
+    <AzureFunctionsVersion>v4</AzureFunctionsVersion>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Azure.Functions.Worker" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Timer" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../PucCrypto.Forecast.Application/PucCrypto.Forecast.Application.csproj" />
+    <ProjectReference Include="../PucCrypto.Forecast.Infrastructure/PucCrypto.Forecast.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="host.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="local.settings.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="Never" />
+  </ItemGroup>
+
+</Project>

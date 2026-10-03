@@ -15,7 +15,7 @@ As decisões 025 a 032 decorrem do enunciado final do PJBL ([enunciado-pjbl.md](
 | 007 | Gateway expõe apenas Identity e BFF | 1 | Substituída pelo ADR-028 |
 | 008 | Tabela `TrackedAsset` no MarketData | 1 | Aceita |
 | 009 | Prediction lê o histórico pela API do MarketData | 1 | Substituída pelo ADR-029 |
-| 010 | Prediction em ML.NET | 1 | Alterada pelo ADR-029 |
+| 010 | Prediction em ML.NET | 1 | Alterada pelos ADR-029 e ADR-039 |
 | 011 | .NET 8 | 1 | Aceita |
 | 012 | Microfrontends com Module Federation e npm workspaces | 1 | Aceita |
 | 013 | Testes de arquitetura em um único projeto | 1 | Substituída pelo ADR-031 |
@@ -44,6 +44,9 @@ As decisões 025 a 032 decorrem do enunciado final do PJBL ([enunciado-pjbl.md](
 | 036 | MarketData em MongoDB sem atributos do driver no Domain | 5 | Aceita |
 | 037 | Coleta da CoinGecko por endpoint protegido por chave | 5 | Aceita |
 | 038 | Catalog guarda o último preço a partir de `PricesIngested` | 5 | Aceita |
+| 039 | Previsão por regressão SDCA do ML.NET sobre variações de preço | 6 | Aceita |
+| 040 | Function App em camadas, com os gatilhos na camada API | 6 | Aceita |
+| 041 | Coleta agendada por Function que chama o MarketData | 6 | Aceita |
 
 ---
 
@@ -502,3 +505,39 @@ As decisões 025 a 032 decorrem do enunciado final do PJBL ([enunciado-pjbl.md](
 **Justificativa.** O evento passa a ter efeito visível, e o fluxo entre Catalog e MarketData fica nos dois sentidos, sem chamadas síncronas entre eles.
 
 **Consequências.** O último preço no Catalog é uma cópia com consistência eventual: pode estar alguns instantes atrás do MarketData. O histórico completo continua só no MarketData.
+
+## ADR-039 — Previsão por regressão SDCA do ML.NET sobre variações de preço
+
+**Contexto.** O ADR-010 escolheu o ML.NET e deixou pendente confirmar que o forecasting por SSA (Singular Spectrum Analysis) rodava na máquina de desenvolvimento, que é ARM64. O teste feito no início da fase 6 mostrou que o SSA depende da Intel MKL: falha em ARM64 e, em x64, exige um pacote nativo adicional e grande.
+
+**Decisão.** A previsão usa a regressão SDCA do ML.NET, que é totalmente gerenciada. O modelo aprende a próxima variação percentual do preço a partir das 7 variações anteriores, com as entradas padronizadas, e projeta a série passo a passo. O intervalo de 95% vem do desvio padrão do erro do modelo na própria série e cresce com a raiz do número de passos. O treino usa semente fixa, uma thread e nenhum embaralhamento, para que a mesma série gere sempre a mesma previsão. O modelo é treinado a cada chamada, com a série recebida.
+
+**Alternativas.** SSA com o pacote da Intel MKL, rodando apenas em x64. Regressão sobre os preços normalizados, em vez das variações. Modelo treinado previamente e armazenado.
+
+**Justificativa.** O SDCA roda nas duas arquiteturas, o que permite executar os testes do modelo na máquina de desenvolvimento e na nuvem, e não aumenta o pacote da Function. Nos testes com séries sintéticas, a regressão sobre preços normalizados amortecia tendências (uma série em alta gerava previsão em queda); sobre as variações, e com entradas padronizadas, a tendência é preservada. Treinar a cada chamada dispensa armazenamento e mantém a Function sem estado.
+
+**Consequências.** Altera o ADR-010: a linguagem e a biblioteca continuam as mesmas, e muda a técnica. O modelo é simples, adequado para demonstração; segue a tendência recente e não antecipa mudanças bruscas. O tempo de treino cresce com o tamanho da série, limitada a 1.000 pontos.
+
+## ADR-040 — Function App em camadas, com os gatilhos na camada API
+
+**Contexto.** O enunciado exige Clean Architecture e Vertical Slice em todos os projetos, inclusive na Azure Function. Nos microsserviços, o endpoint fica dentro da slice, na Application (ADR-002). Os gatilhos de uma Function, porém, dependem do SDK do Azure Functions.
+
+**Decisão.** O repositório da Function tem as mesmas quatro camadas dos microsserviços. A camada API é o próprio Function App: as classes de gatilho (`GetForecastFunction`, `CollectPricesFunction`) ficam em `Api/Functions` e apenas validam a entrada e chamam o handler da slice. A Application contém query ou command, validador e handler, e não depende do SDK do Azure Functions nem do ML.NET, o que os testes de arquitetura verificam. `GetForecast` exige a chave da Function; as respostas de erro seguem o formato Problem Details dos microsserviços. No ambiente local, a Function roda na imagem oficial do runtime, com chaves fixas de desenvolvimento.
+
+**Alternativas.** Colocar os gatilhos na Application, como os endpoints. Uma Function sem camadas.
+
+**Justificativa.** Manter o SDK do Azure Functions fora da Application preserva a regra de dependência: a lógica de previsão não sabe se é chamada por HTTP, por agendamento ou por um teste. A chave da Function protege a rota sem exigir o JWT do usuário, que o BFF não precisa repassar.
+
+**Consequências.** A slice da Function fica dividida entre a Application e a classe de gatilho na API, diferente dos microsserviços; os testes de convenção de nomes valem para a parte que está na Application. A Function não tem Swagger; o contrato está documentado no README.
+
+## ADR-041 — Coleta agendada por Function que chama o MarketData
+
+**Contexto.** A decisão D7 incluiu a Function agendada de coleta, prevista como opcional no enunciado. O ADR-037 definiu que a coleta é feita pelo MarketData, em `POST /prices/collect`, protegido por chave.
+
+**Decisão.** A Function `CollectPrices`, com gatilho agendado (CRON configurável em `CollectPricesSchedule`, padrão a cada 30 minutos), chama `POST /prices/collect` no MarketData com a chave de coleta. A Function não acessa a CoinGecko nem o banco do MarketData. Ela fica no mesmo Function App de `GetForecast`.
+
+**Alternativas.** Um Function App separado para a coleta. A Function acessar a CoinGecko e o MongoDB diretamente.
+
+**Justificativa.** Um único Function App reduz o número de recursos a publicar e manter. A coleta continua no serviço dono dos dados, e a Function cuida só do agendamento, o papel típico de um componente serverless.
+
+**Consequências.** Substitui, para a coleta, o ADR-006 (a Function não faz mais parte do serviço dono). O gatilho agendado exige um Azure Storage para o runtime (Azurite no ambiente local). Se o MarketData estiver fora do ar, a execução registra o erro e a próxima tenta de novo.

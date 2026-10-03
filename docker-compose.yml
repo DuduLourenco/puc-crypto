@@ -53,6 +53,13 @@ services:
       timeout: 5s
       retries: 10
 
+  # Equivalente local do Azure Storage, exigido pelo runtime das Functions (gatilho agendado).
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    command: azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --skipApiVersionCheck --loose
+    ports:
+      - "127.0.0.1:10000-10002:10000-10002"
+
   rabbitmq:
     image: rabbitmq:4-management-alpine
     environment:
@@ -108,6 +115,26 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+
+  # Azure Functions (GetForecast e coleta agendada). A imagem do runtime é x64.
+  forecast-function:
+    build: ./forecast-function
+    platform: linux/amd64
+    environment:
+      FUNCTIONS_WORKER_RUNTIME: dotnet-isolated
+      AzureWebJobsStorage: DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;QueueEndpoint=http://azurite:10001/devstoreaccount1;TableEndpoint=http://azurite:10002/devstoreaccount1;
+      AzureWebJobsSecretStorageType: files
+      CollectPricesSchedule: ${COLLECT_PRICES_SCHEDULE:-0 */30 * * * *}
+      MarketData__BaseUrl: http://marketdata-api:8080/
+      MarketData__CollectorApiKey: ${COLLECTOR_API_KEY}
+    volumes:
+      # Chaves fixas de desenvolvimento (x-functions-key: puccrypto-dev-function-key).
+      - ./forecast-function/local/host-secrets.json:/azure-functions-host/Secrets/host.json:ro
+    ports:
+      - "127.0.0.1:7071:80"
+    depends_on:
+      - azurite
+      - marketdata-api
 
 volumes:
   postgres-data:

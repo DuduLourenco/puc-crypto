@@ -21,7 +21,9 @@ internal static class Layers
         "RabbitMQ",
         "Azure",
         "BCrypt",
-        "Microsoft.MarketDataModel"
+        "Microsoft.IdentityModel",
+        "Microsoft.ML",
+        "Microsoft.Azure.Functions"
     ];
 
     public static Assembly Domain => Assembly.Load(DomainNamespace);

@@ -11,7 +11,7 @@ Este repositório é a área de trabalho do projeto. Cada pasta de componente é
 | [identity/](identity/) | Identity | .NET 8, PostgreSQL | Acréscimo do grupo (login com JWT) | Pronto |
 | [catalog/](catalog/) | Catalog | .NET 8, Azure SQL | Microsserviço 2 (SQL) | Pronto, exceto deploy |
 | [marketdata/](marketdata/) | MarketData | .NET 8, MongoDB Atlas | Microsserviço 1 (MongoDB) | Pronto, exceto deploy |
-| [forecast-function/](forecast-function/) | GetForecast | Azure Functions, ML.NET | Azure Function | A fazer |
+| [forecast-function/](forecast-function/) | GetForecast | Azure Functions, ML.NET | Azure Function | Pronto, exceto deploy |
 | [bff/](bff/) | BFF | NestJS | BFF Node.js | A fazer |
 | [frontend/](frontend/) | Shell e remotes | React, Vite, Module Federation | Microfrontend | A fazer |
 
@@ -36,6 +36,7 @@ docker compose up -d --build
 - Identity: http://localhost:5101/swagger
 - Catalog: http://localhost:5102/swagger
 - MarketData: http://localhost:5103/swagger
+- Forecast Function: http://localhost:7071/api/health (previsão em `POST /api/forecast`, com `x-functions-key: puccrypto-dev-function-key`)
 - Painel do RabbitMQ: http://localhost:15672
 
 Cada pasta tem a sua própria solução: `cd identity && dotnet test`.
@@ -45,7 +46,7 @@ Cada pasta tem a sua própria solução: `cd identity && dotnet test`.
 - [Enunciado do PJBL](docs/enunciado-pjbl.md)
 - [Análise de impacto do enunciado final](docs/analise-impacto-pjbl.md)
 - [Decisões de arquitetura (ADRs)](docs/ADRs.md)
-- Inventário por fase: [1](docs/fases/fase-01.md), [2](docs/fases/fase-02.md), [3](docs/fases/fase-03.md), [4](docs/fases/fase-04.md), [3R](docs/fases/fase-03R.md), [4R](docs/fases/fase-04R.md), [5](docs/fases/fase-05.md)
+- Inventário por fase: [1](docs/fases/fase-01.md), [2](docs/fases/fase-02.md), [3](docs/fases/fase-03.md), [4](docs/fases/fase-04.md), [3R](docs/fases/fase-03R.md), [4R](docs/fases/fase-04R.md), [5](docs/fases/fase-05.md), [6](docs/fases/fase-06.md)
 
 As fases 1 a 4 descrevem a arquitetura anterior ao enunciado final. A fase 3R registra a reorganização e a 4R, o Catalog revisado.
 
