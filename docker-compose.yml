@@ -136,6 +136,26 @@ services:
       - azurite
       - marketdata-api
 
+  # ---------- BFF: ponto de entrada do frontend no ambiente local ----------
+  bff:
+    build: ./bff
+    environment:
+      PORT: 3000
+      IDENTITY_URL: http://identity-api:8080
+      CATALOG_URL: http://catalog-api:8080
+      MARKETDATA_URL: http://marketdata-api:8080
+      FORECAST_URL: http://forecast-function/api
+      FORECAST_FUNCTION_KEY: ${FORECAST_FUNCTION_KEY}
+      JWT_SIGNING_KEY: ${JWT_SIGNING_KEY}
+      CORS_ORIGINS: ${CORS_ORIGINS:-*}
+    ports:
+      - "5100:3000"
+    depends_on:
+      - identity-api
+      - catalog-api
+      - marketdata-api
+      - forecast-function
+
 volumes:
   postgres-data:
   sqlserver-data:

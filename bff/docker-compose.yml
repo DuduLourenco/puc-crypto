@@ -1,0 +1,18 @@
+name: puccrypto-bff
+
+# Sobe apenas o BFF, apontando para os serviços que estiverem rodando na máquina
+# (Identity 5101, Catalog 5102, MarketData 5103, Function 7071). Valores de desenvolvimento.
+
+services:
+  bff:
+    build: .
+    environment:
+      PORT: 3000
+      IDENTITY_URL: http://host.docker.internal:5101
+      CATALOG_URL: http://host.docker.internal:5102
+      MARKETDATA_URL: http://host.docker.internal:5103
+      FORECAST_URL: http://host.docker.internal:7071/api
+      FORECAST_FUNCTION_KEY: puccrypto-dev-function-key
+      JWT_SIGNING_KEY: puccrypto-dev-only-signing-key-0123456789abcdef
+    ports:
+      - "127.0.0.1:5100:3000"

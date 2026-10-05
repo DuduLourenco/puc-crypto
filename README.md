@@ -12,7 +12,7 @@ Este repositório é a área de trabalho do projeto. Cada pasta de componente é
 | [catalog/](catalog/) | Catalog | .NET 8, Azure SQL | Microsserviço 2 (SQL) | Pronto, exceto deploy |
 | [marketdata/](marketdata/) | MarketData | .NET 8, MongoDB Atlas | Microsserviço 1 (MongoDB) | Pronto, exceto deploy |
 | [forecast-function/](forecast-function/) | GetForecast | Azure Functions, ML.NET | Azure Function | Pronto, exceto deploy |
-| [bff/](bff/) | BFF | NestJS | BFF Node.js | A fazer |
+| [bff/](bff/) | BFF | NestJS | BFF Node.js | Pronto, exceto deploy |
 | [frontend/](frontend/) | Shell e remotes | React, Vite, Module Federation | Microfrontend | A fazer |
 
 O API Gateway é um serviço gerenciado na nuvem, na frente do BFF.
@@ -26,27 +26,28 @@ O API Gateway é um serviço gerenciado na nuvem, na frente do BFF.
 
 ## Como executar o que já existe
 
-Requisitos: Docker. Para compilar e testar fora do Docker, SDK do .NET 8.
+Requisitos: Docker. Para compilar e testar fora do Docker, SDK do .NET 8 e Node 22.
 
 ```bash
 cp .env.example .env
 docker compose up -d --build
 ```
 
+- BFF (ponto de entrada local): http://localhost:5100/swagger
 - Identity: http://localhost:5101/swagger
 - Catalog: http://localhost:5102/swagger
 - MarketData: http://localhost:5103/swagger
 - Forecast Function: http://localhost:7071/api/health (previsão em `POST /api/forecast`, com `x-functions-key: puccrypto-dev-function-key`)
 - Painel do RabbitMQ: http://localhost:15672
 
-Cada pasta tem a sua própria solução: `cd identity && dotnet test`.
+Cada pasta tem a sua própria solução e os seus testes: `cd identity && dotnet test`, `cd bff && npm install && npm test`.
 
 ## Documentação
 
 - [Enunciado do PJBL](docs/enunciado-pjbl.md)
 - [Análise de impacto do enunciado final](docs/analise-impacto-pjbl.md)
 - [Decisões de arquitetura (ADRs)](docs/ADRs.md)
-- Inventário por fase: [1](docs/fases/fase-01.md), [2](docs/fases/fase-02.md), [3](docs/fases/fase-03.md), [4](docs/fases/fase-04.md), [3R](docs/fases/fase-03R.md), [4R](docs/fases/fase-04R.md), [5](docs/fases/fase-05.md), [6](docs/fases/fase-06.md)
+- Inventário por fase: [1](docs/fases/fase-01.md), [2](docs/fases/fase-02.md), [3](docs/fases/fase-03.md), [4](docs/fases/fase-04.md), [3R](docs/fases/fase-03R.md), [4R](docs/fases/fase-04R.md), [5](docs/fases/fase-05.md), [6](docs/fases/fase-06.md), [7](docs/fases/fase-07.md)
 
 As fases 1 a 4 descrevem a arquitetura anterior ao enunciado final. A fase 3R registra a reorganização e a 4R, o Catalog revisado.
 

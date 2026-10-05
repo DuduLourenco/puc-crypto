@@ -47,6 +47,9 @@ As decisões 025 a 032 decorrem do enunciado final do PJBL ([enunciado-pjbl.md](
 | 039 | Previsão por regressão SDCA do ML.NET sobre variações de preço | 6 | Aceita |
 | 040 | Function App em camadas, com os gatilhos na camada API | 6 | Aceita |
 | 041 | Coleta agendada por Function que chama o MarketData | 6 | Aceita |
+| 042 | BFF em NestJS 11, com Domain e Application sem framework | 7 | Aceita |
+| 043 | `/aggregated-data` com falha parcial por criptomoeda | 7 | Aceita |
+| 044 | BFF valida o JWT e repassa token e erros | 7 | Aceita |
 
 ---
 
@@ -541,3 +544,39 @@ As decisões 025 a 032 decorrem do enunciado final do PJBL ([enunciado-pjbl.md](
 **Justificativa.** Um único Function App reduz o número de recursos a publicar e manter. A coleta continua no serviço dono dos dados, e a Function cuida só do agendamento, o papel típico de um componente serverless.
 
 **Consequências.** Substitui, para a coleta, o ADR-006 (a Function não faz mais parte do serviço dono). O gatilho agendado exige um Azure Storage para o runtime (Azurite no ambiente local). Se o MarketData estiver fora do ar, a execução registra o erro e a próxima tenta de novo.
+
+## ADR-042 — BFF em NestJS 11, com Domain e Application sem framework
+
+**Contexto.** O enunciado pede o BFF em Node.js (Express ou NestJS), com Clean Architecture, Vertical Slice, testes unitários e testes de arquitetura. No NestJS, a injeção de dependência costuma ser feita com decoradores do framework nas próprias classes de caso de uso.
+
+**Decisão.** O BFF usa NestJS 11 e TypeScript, com uma pasta por camada em `src/`: `domain`, `application`, `infrastructure` e `api`. Domain e Application são TypeScript puro: não importam NestJS nem bibliotecas HTTP. As portas são classes abstratas, usadas como chave de injeção. Os handlers são classes comuns, criadas no `ApiModule` com as portas de que precisam. Cada caso de uso é uma pasta em `application/features`, com a entrada e o handler; os controllers, na camada API, são agrupados por recurso. As chamadas HTTP usam o `fetch` nativo do Node. As regras de dependência são verificadas pelo dependency-cruiser, e os testes usam Jest.
+
+**Alternativas.** NestJS 12. Express sem framework. Decoradores do NestJS nos handlers. Controller dentro da pasta de cada slice, como o endpoint nos serviços .NET.
+
+**Justificativa.** O NestJS traz módulos, injeção de dependência e integração com o Swagger. A versão 12 é distribuída apenas como ES Modules, o que complica a execução dos testes com Jest; a 11 atende ao projeto. Manter a Application sem framework permite testar os casos de uso sem subir o NestJS e torna a regra de dependência verificável com uma única regra do dependency-cruiser. Agrupar os controllers por recurso é o formato usual do NestJS e mantém o Swagger organizado por recurso.
+
+**Consequências.** Há mais código de ligação no `ApiModule`, um provider por handler. Diferente dos serviços .NET (ADR-002), a entrada HTTP fica fora da pasta da slice. As 18 slices de repasse são muito pequenas: recebem a entrada e chamam a porta.
+
+## ADR-043 — `/aggregated-data` com falha parcial por criptomoeda
+
+**Contexto.** O endpoint obrigatório do enunciado consome o microsserviço SQL, o microsserviço MongoDB e a Azure Function, e devolve tudo em uma resposta. Com a previsão calculada por chamada (ADR-029), cada criptomoeda exige uma consulta ao MarketData e uma à Function, e qualquer uma pode falhar ou estar em inicialização em um plano gratuito.
+
+**Decisão.** O BFF busca no Catalog a lista do usuário e, para cada criptomoeda, em paralelo, o histórico no MarketData e a previsão na Function. A falha do Catalog falha a requisição. A falha do MarketData ou da Function afeta só a criptomoeda em questão, que volta com `historyStatus` ou `forecastStatus` igual a `unavailable`. Com menos de 14 preços, a Function não é chamada e o status é `insufficient-history`. As regras de combinação ficam no Domain (`buildCryptoAggregate`).
+
+**Alternativas.** Falhar a requisição inteira se qualquer serviço falhar. Guardar a previsão em cache no BFF.
+
+**Justificativa.** O dashboard continua útil sem a previsão ou sem o histórico de uma moeda, e a demonstração não depende de todos os componentes responderem ao mesmo tempo. O status explícito permite ao frontend mostrar o que faltou. O cache acrescentaria estado ao BFF sem necessidade para o volume do projeto.
+
+**Consequências.** O número de chamadas cresce com a lista do usuário: uma ao Catalog e até duas por criptomoeda. O frontend precisa tratar os três status de previsão.
+
+## ADR-044 — BFF valida o JWT e repassa token e erros
+
+**Contexto.** O Gateway fica na frente do BFF, e o login passa pelo BFF (ADR-028). Os microsserviços validam o JWT repassado (ADR-021).
+
+**Decisão.** O BFF valida o JWT nas rotas protegidas, com a mesma chave, emissor e audiência do Identity, e repassa o token no cabeçalho `Authorization` ao Catalog e ao MarketData. A Function é chamada com a chave da Function, sem o token do usuário. Um erro devolvido por um serviço é repassado com o mesmo status e o mesmo corpo; os erros do próprio BFF usam o mesmo formato Problem Details. Um serviço que não responde resulta em 502. O BFF não valida o corpo das requisições repassadas.
+
+**Alternativas.** O BFF apenas repassar o token, sem validá-lo. O BFF reescrever os erros dos serviços em um formato próprio.
+
+**Justificativa.** Validar no BFF recusa requisições sem token válido antes de gerar chamadas aos serviços, o que importa em `/aggregated-data`. Repassar os erros evita duplicar no BFF as regras de validação de cada serviço e dá ao frontend um único formato de erro.
+
+**Consequências.** O BFF também conhece a chave de assinatura do JWT (ver a consequência do ADR-017). Os códigos de erro vistos pelo frontend são os dos serviços, como `Catalog.CryptoInUse`.
