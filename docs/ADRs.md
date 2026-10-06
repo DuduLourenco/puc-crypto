@@ -17,7 +17,7 @@ As decisões 025 a 032 decorrem do enunciado final do PJBL ([enunciado-pjbl.md](
 | 009 | Prediction lê o histórico pela API do MarketData | 1 | Substituída pelo ADR-029 |
 | 010 | Prediction em ML.NET | 1 | Alterada pelos ADR-029 e ADR-039 |
 | 011 | .NET 8 | 1 | Aceita |
-| 012 | Microfrontends com Module Federation e npm workspaces | 1 | Aceita |
+| 012 | Microfrontends com Module Federation e npm workspaces | 1 | Detalhada pelo ADR-045 |
 | 013 | Testes de arquitetura em um único projeto | 1 | Substituída pelo ADR-031 |
 | 014 | Configuração de build e versões de pacotes centralizadas | 2 | Alterada pelo ADR-025 |
 | 015 | Dockerfile único parametrizado para os serviços .NET | 2 | Substituída pelo ADR-025 |
@@ -50,6 +50,9 @@ As decisões 025 a 032 decorrem do enunciado final do PJBL ([enunciado-pjbl.md](
 | 042 | BFF em NestJS 11, com Domain e Application sem framework | 7 | Aceita |
 | 043 | `/aggregated-data` com falha parcial por criptomoeda | 7 | Aceita |
 | 044 | BFF valida o JWT e repassa token e erros | 7 | Aceita |
+| 045 | Microfrontends integrados em tempo de execução, com sessão no navegador | 8 | Aceita |
+| 046 | Camadas e slices também no frontend | 8 | Aceita |
+| 047 | Gráfico de linha único para histórico e previsão | 8 | Aceita |
 
 ---
 
@@ -580,3 +583,39 @@ As decisões 025 a 032 decorrem do enunciado final do PJBL ([enunciado-pjbl.md](
 **Justificativa.** Validar no BFF recusa requisições sem token válido antes de gerar chamadas aos serviços, o que importa em `/aggregated-data`. Repassar os erros evita duplicar no BFF as regras de validação de cada serviço e dá ao frontend um único formato de erro.
 
 **Consequências.** O BFF também conhece a chave de assinatura do JWT (ver a consequência do ADR-017). Os códigos de erro vistos pelo frontend são os dos serviços, como `Catalog.CryptoInUse`.
+
+## ADR-045 — Microfrontends integrados em tempo de execução, com sessão no navegador
+
+**Contexto.** O ADR-012 definiu shell e três microfrontends com Module Federation. Faltava decidir como eles compartilham a sessão do usuário, como o shell os localiza e o que acontece quando um deles falha.
+
+**Decisão.** O shell é o host e carrega os remotos `mfe_auth`, `mfe_cryptos` e `mfe_dashboard` em tempo de execução, cada um a partir do seu `remoteEntry.js`, cujo endereço é definido no build por variável de ambiente. Cada remoto expõe um componente React; o roteamento é do shell. React e React DOM são instância única. A sessão fica no `localStorage`, e as mudanças são avisadas por um evento da janela; o código que faz isso está no pacote `shared`, empacotado em cada aplicação. Um microfrontend que não carrega é isolado por um limite de erro. Todos chamam somente o BFF. As quatro aplicações ficam em um único repositório, como workspaces npm, e podem ser servidas por um único nginx, em subpastas, ou separadamente.
+
+**Alternativas.** Compartilhar a sessão por um módulo federado em instância única. Passar o token do shell aos remotos por propriedades. Um repositório por microfrontend.
+
+**Justificativa.** O `localStorage` com evento não cria dependência de execução entre os microfrontends: cada um funciona sozinho e descobre a sessão por conta própria. O endereço dos remotos por configuração permite hospedá-los juntos ou separados sem mudar o código. O enunciado pede um repositório de microfrontend, e um único repositório mantém o shell e os remotos na mesma versão das dependências.
+
+**Consequências.** Detalha o ADR-012. O token fica acessível a scripts da página, como em qualquer SPA que usa `localStorage`. O código do `shared` é duplicado nos quatro builds. Mudar o endereço do BFF ou de um remoto exige um novo build.
+
+## ADR-046 — Camadas e slices também no frontend
+
+**Contexto.** Os requisitos de código do enunciado (Clean Architecture, Vertical Slice, testes unitários e de arquitetura) foram aplicados pelo grupo a todos os projetos. Em uma interface, não há uma camada de API.
+
+**Decisão.** Cada pacote do frontend tem as pastas `domain`, `application` (com `features/` e `ports/`), `infrastructure` e `ui`. Domain e Application são TypeScript puro, sem React; os casos de uso são funções que recebem as portas. A `ui` faz o papel da camada API: é a entrada do sistema, acionada pelo usuário, e recebe os casos de uso já ligados aos adaptadores pela raiz de composição (o arquivo exposto ao shell). As regras de dependência são verificadas pelo dependency-cruiser, inclusive a de que um microfrontend não importa outro; os testes usam Vitest e Testing Library.
+
+**Alternativas.** Organização usual de React, por componentes e hooks, sem camadas. Chamar o BFF diretamente dos componentes.
+
+**Justificativa.** As regras de validação e a montagem das séries do gráfico ficam testáveis sem navegador nem React. A mesma estrutura dos serviços facilita a leitura do projeto como um todo e a sua documentação.
+
+**Consequências.** Para telas simples, há mais arquivos do que o habitual em React: várias slices do `mfe-cryptos` são funções de uma linha. O estado das telas fica nos componentes, sem biblioteca de estado.
+
+## ADR-047 — Gráfico de linha único para histórico e previsão
+
+**Contexto.** O dashboard precisa mostrar o preço histórico e a previsão por machine learning, com a incerteza da previsão.
+
+**Decisão.** Um gráfico de linha (Recharts) com duas séries em um único eixo de valores: histórico em linha contínua e previsão em linha tracejada, que parte do último preço observado, com a faixa do intervalo de 95%. A legenda fica sempre visível, o último valor previsto é rotulado, e há um tooltip que acompanha o ponteiro. Os mesmos dados ficam em uma tabela abaixo do gráfico. As duas cores foram validadas para daltonismo e contraste, nos modos claro e escuro. O eixo de valores usa marcas em números redondos e não começa em zero; o valor absoluto é dado pelos números de destaque acima do gráfico.
+
+**Alternativas.** Dois gráficos, um para o histórico e outro para a previsão. Eixo começando em zero.
+
+**Justificativa.** As duas séries têm a mesma unidade e são contínuas no tempo, então um eixo único as compara sem distorção. O tracejado e a legenda identificam a previsão sem depender só da cor. Em um gráfico de linha de preços, um eixo a partir de zero esconderia a variação, que é a informação buscada.
+
+**Consequências.** A variação parece maior do que seria em um eixo a partir de zero; os números de destaque e a tabela dão a referência. O gráfico supõe preços em uma única moeda (dólar).

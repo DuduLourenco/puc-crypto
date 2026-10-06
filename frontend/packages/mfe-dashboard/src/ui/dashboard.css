@@ -1,0 +1,147 @@
+/* Uma linha de filtros acima do conteúdo que eles afetam. */
+.dash-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+}
+
+.dash-filters .pc-field {
+  min-width: 150px;
+}
+
+/* Enquanto os dados recarregam, o conteúdo anterior permanece, esmaecido. */
+.dash-content {
+  display: grid;
+  gap: 20px;
+  transition: opacity 120ms ease;
+}
+
+.dash-content[aria-busy='true'] {
+  opacity: 0.55;
+}
+
+.dash-tiles {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+/* Em telas largas, o cartão do número principal é mais largo que os outros dois. */
+@media (min-width: 900px) {
+  .dash-tiles {
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
+.dash-tile {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.dash-tile {
+  display: grid;
+  gap: 2px;
+  align-content: start;
+}
+
+.dash-tile__label {
+  font-size: 0.8125rem;
+  color: var(--pc-text-secondary);
+}
+
+.dash-tile__value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+/* O número principal da tela: o último preço. */
+.dash-tile__value--hero {
+  font-size: 3rem;
+}
+
+.dash-tile__note {
+  font-size: 0.8125rem;
+  color: var(--pc-text-muted);
+}
+
+/* A direção é dada pela seta e pelo sinal; a cor apenas reforça. */
+.dash-delta {
+  font-weight: 600;
+}
+
+.dash-delta--up {
+  color: var(--pc-good-text);
+}
+
+.dash-delta--down {
+  color: var(--pc-critical);
+}
+
+.dash-chart {
+  width: 100%;
+  height: 340px;
+}
+
+.dash-chart text {
+  font-family: var(--pc-font);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.dash-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.875rem;
+  color: var(--pc-text-secondary);
+}
+
+.dash-legend li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dash-tooltip {
+  background: var(--pc-surface);
+  border: 1px solid var(--pc-border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  font-size: 0.8125rem;
+  display: grid;
+  gap: 4px;
+}
+
+.dash-tooltip__title {
+  color: var(--pc-text-secondary);
+}
+
+.dash-tooltip__row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dash-tooltip__row strong {
+  font-variant-numeric: tabular-nums;
+}
+
+.dash-tooltip__row span {
+  color: var(--pc-text-secondary);
+}
+
+.dash-details > summary {
+  cursor: pointer;
+  color: var(--pc-text-secondary);
+  font-size: 0.875rem;
+}
+
+.dash-details[open] > summary {
+  margin-bottom: 8px;
+}

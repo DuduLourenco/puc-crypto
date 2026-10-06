@@ -1,0 +1,59 @@
+.shell__header {
+  background: var(--pc-surface);
+  border-bottom: 1px solid var(--pc-border);
+}
+
+.shell__bar {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 12px 20px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 24px;
+}
+
+.shell__brand {
+  font-size: 1.125rem;
+}
+
+.shell__nav {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+}
+
+.shell__link {
+  color: var(--pc-text-secondary);
+  text-decoration: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+
+.shell__link:hover {
+  background: var(--pc-accent-wash);
+}
+
+.shell__link.active {
+  color: var(--pc-text);
+  font-weight: 600;
+  background: var(--pc-accent-wash);
+}
+
+.shell__user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--pc-text-secondary);
+}
+
+.shell__main {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 24px 20px 48px;
+}
+
+.shell__main--narrow {
+  max-width: 480px;
+  padding-top: 48px;
+}

@@ -1,0 +1,12 @@
+name: puccrypto-frontend
+
+# Sobe o shell e os microfrontends em um servidor nginx, apontando para um BFF em http://localhost:5100.
+
+services:
+  frontend:
+    build:
+      context: .
+      args:
+        VITE_BFF_URL: http://localhost:5100
+    ports:
+      - "127.0.0.1:5200:80"

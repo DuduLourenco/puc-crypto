@@ -1,0 +1,334 @@
+/*
+ * Tema comum do shell e dos microfrontends do PucCrypto.
+ * As cores são definidas por papel; o modo escuro troca os valores em um só lugar.
+ */
+:root {
+  color-scheme: light;
+
+  --pc-page: #f9f9f7;
+  --pc-surface: #fcfcfb;
+  --pc-text: #0b0b0b;
+  --pc-text-secondary: #52514e;
+  --pc-text-muted: #898781;
+  --pc-border: rgba(11, 11, 11, 0.1);
+  --pc-grid: #e1e0d9;
+  --pc-axis: #c3c2b7;
+
+  --pc-accent: #2a78d6;
+  --pc-accent-hover: #256abf;
+  --pc-on-accent: #ffffff;
+  --pc-accent-wash: rgba(42, 120, 214, 0.1);
+
+  /* Séries do gráfico: histórico e previsão. */
+  --pc-series-history: #2a78d6;
+  --pc-series-forecast: #eb6834;
+
+  --pc-good-text: #006300;
+  --pc-critical: #d03b3b;
+  --pc-critical-wash: rgba(208, 59, 59, 0.08);
+
+  --pc-radius: 8px;
+  --pc-font: system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    --pc-page: #0d0d0d;
+    --pc-surface: #1a1a19;
+    --pc-text: #ffffff;
+    --pc-text-secondary: #c3c2b7;
+    --pc-text-muted: #898781;
+    --pc-border: rgba(255, 255, 255, 0.1);
+    --pc-grid: #2c2c2a;
+    --pc-axis: #383835;
+
+    --pc-accent: #3987e5;
+    --pc-accent-hover: #5598e7;
+    --pc-on-accent: #0b0b0b;
+    --pc-accent-wash: rgba(57, 135, 229, 0.16);
+
+    --pc-series-history: #3987e5;
+    --pc-series-forecast: #d95926;
+
+    --pc-good-text: #0ca30c;
+    --pc-critical: #e66767;
+    --pc-critical-wash: rgba(230, 103, 103, 0.12);
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--pc-page);
+  color: var(--pc-text);
+  font-family: var(--pc-font);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  line-height: 1.25;
+}
+
+h1 {
+  font-size: 1.5rem;
+}
+
+h2 {
+  font-size: 1.125rem;
+}
+
+h3 {
+  font-size: 1rem;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: var(--pc-accent);
+}
+
+/* ---------- Estrutura ---------- */
+
+.pc-page {
+  display: grid;
+  gap: 20px;
+}
+
+.pc-page__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.pc-subtitle {
+  color: var(--pc-text-secondary);
+}
+
+.pc-card {
+  background: var(--pc-surface);
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius);
+  padding: 20px;
+  display: grid;
+  gap: 16px;
+  align-content: start;
+}
+
+.pc-grid-2 {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+  align-items: start;
+}
+
+.pc-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.pc-muted {
+  color: var(--pc-text-muted);
+  font-size: 0.875rem;
+}
+
+/* ---------- Formulários ---------- */
+
+.pc-form {
+  display: grid;
+  gap: 12px;
+}
+
+.pc-field {
+  display: grid;
+  gap: 4px;
+}
+
+.pc-field > span {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--pc-text-secondary);
+}
+
+.pc-field small {
+  color: var(--pc-text-muted);
+}
+
+.pc-input,
+.pc-select {
+  width: 100%;
+  font: inherit;
+  color: var(--pc-text);
+  background: var(--pc-surface);
+  border: 1px solid var(--pc-axis);
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+
+.pc-input:focus-visible,
+.pc-select:focus-visible,
+.pc-button:focus-visible,
+.pc-tab:focus-visible {
+  outline: 2px solid var(--pc-accent);
+  outline-offset: 2px;
+}
+
+.pc-button {
+  font: inherit;
+  font-weight: 600;
+  color: var(--pc-on-accent);
+  background: var(--pc-accent);
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 8px 14px;
+  cursor: pointer;
+}
+
+.pc-button:hover:not(:disabled) {
+  background: var(--pc-accent-hover);
+}
+
+.pc-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.pc-button--ghost {
+  color: var(--pc-text);
+  background: transparent;
+  border-color: var(--pc-axis);
+}
+
+.pc-button--ghost:hover:not(:disabled) {
+  background: var(--pc-accent-wash);
+}
+
+.pc-button--danger {
+  color: var(--pc-critical);
+  background: transparent;
+  border-color: var(--pc-critical);
+}
+
+.pc-button--danger:hover:not(:disabled) {
+  background: var(--pc-critical-wash);
+}
+
+.pc-button--small {
+  padding: 4px 10px;
+  font-size: 0.875rem;
+}
+
+/* ---------- Abas ---------- */
+
+.pc-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  border-bottom: 1px solid var(--pc-border);
+}
+
+.pc-tab {
+  font: inherit;
+  color: var(--pc-text-secondary);
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.pc-tab[aria-selected='true'] {
+  color: var(--pc-text);
+  font-weight: 600;
+  border-bottom-color: var(--pc-accent);
+}
+
+/* ---------- Tabelas ---------- */
+
+.pc-table-wrap {
+  overflow-x: auto;
+}
+
+.pc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+}
+
+.pc-table th,
+.pc-table td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--pc-grid);
+  vertical-align: middle;
+}
+
+.pc-table th {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--pc-text-secondary);
+}
+
+.pc-table td .pc-row {
+  flex-wrap: nowrap;
+}
+
+.pc-table .pc-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ---------- Avisos ---------- */
+
+.pc-alert {
+  border-radius: 6px;
+  padding: 8px 12px;
+  border: 1px solid var(--pc-border);
+}
+
+.pc-alert--error {
+  border-color: var(--pc-critical);
+  background: var(--pc-critical-wash);
+}
+
+.pc-alert--info {
+  background: var(--pc-accent-wash);
+}
+
+.pc-loading {
+  color: var(--pc-text-secondary);
+}
+
+.pc-badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--pc-text-secondary);
+  border: 1px solid var(--pc-axis);
+  border-radius: 999px;
+  padding: 1px 8px;
+}
+
+.pc-grid-3 {
+  display: grid;
+  gap: 12px;
+  align-items: end;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}

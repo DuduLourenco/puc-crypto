@@ -1,0 +1,8 @@
+node_modules/
+dist/
+coverage/
+.__mf__temp/
+*.tsbuildinfo
+.env
+.env.local
+.DS_Store

@@ -156,6 +156,18 @@ services:
       - marketdata-api
       - forecast-function
 
+  # ---------- Frontend: shell e microfrontends em um nginx ----------
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # Endereço do BFF visto pelo navegador.
+        VITE_BFF_URL: ${FRONTEND_BFF_URL:-http://localhost:5100}
+    ports:
+      - "5200:80"
+    depends_on:
+      - bff
+
 volumes:
   postgres-data:
   sqlserver-data:

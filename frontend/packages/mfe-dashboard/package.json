@@ -1,0 +1,16 @@
+{
+  "name": "@puccrypto/mfe-dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@puccrypto/shared": "1.0.0"
+  }
+}
