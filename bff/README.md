@@ -89,7 +89,7 @@ Uma slice não importa outra. Os controllers, na camada API, são agrupados por 
 - Swagger (`@nestjs/swagger`)
 - `fetch` nativo do Node para as chamadas HTTP; `jsonwebtoken` para validar o JWT
 - Jest e Supertest (testes unitários e da API)
-- dependency-cruiser (testes de arquitetura)
+- ArchUnitTS (testes de arquitetura)
 - Docker
 
 ## Como rodar localmente
@@ -139,11 +139,11 @@ curl http://localhost:5100/aggregated-data -H "Authorization: Bearer $TOKEN"
 ```bash
 npm test            # unitários e de arquitetura
 npm run test:unit   # Jest
-npm run test:arch   # dependency-cruiser
+npm run test:arch   # Jest com ArchUnitTS
 ```
 
 - **Unitários (`test/`)**: regras de agregação do domínio; `GetAggregatedDataHandler` com portas simuladas (caminho feliz, histórico insuficiente, falha da Function, falha do MarketData para uma criptomoeda, falha do Catalog); slices de repasse; cliente HTTP e gateways com `fetch` simulado; validação do JWT; configuração; e a camada API com Supertest (rotas, autenticação, repasse de erros, validação e documento do Swagger).
-- **Arquitetura (`.dependency-cruiser.cjs`)**: Domain não importa nada; Application não importa Infrastructure, API nem pacotes npm; Infrastructure não importa API; API não importa Infrastructure; slices não importam outras slices; não há dependências circulares.
+- **Arquitetura (`test/architecture/architecture.spec.ts`, ArchUnitTS)**: Domain não importa nada; Application não importa Infrastructure, API nem pacotes npm; Infrastructure não importa API; API não importa Infrastructure; slices não importam outras slices e seguem a convenção `<caso-de-uso>.(command|query|handler).ts`; não há dependências circulares.
 
 ## Imagem Docker
 
@@ -161,6 +161,7 @@ docker build -t <usuario>/puccrypto/bff:v1 .
 
 ## Alunos
 
-- _Nome do aluno 1_
-- _Nome do aluno 2_
-- _Nome do aluno 3_
+- Eduardo Lourenço da Silva
+- Gabriel Pereira Lugon Moulin
+- João Pedro Novak Rausis
+- Vitor Vieira Machado

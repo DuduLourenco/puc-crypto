@@ -54,6 +54,7 @@ As fases 1 a 4 descrevem a arquitetura anterior ao enunciado final. A fase 3R re
 
 ## Alunos
 
-- _Nome do aluno 1_
-- _Nome do aluno 2_
-- _Nome do aluno 3_
+- Eduardo Lourenço da Silva
+- Gabriel Pereira Lugon Moulin
+- João Pedro Novak Rausis
+- Vitor Vieira Machado

@@ -1,8 +1,14 @@
-using System.Reflection;
+using System.Text.RegularExpressions;
+using Assembly = System.Reflection.Assembly;
+using ArchUnitNET.Domain;
+using ArchUnitNET.Loader;
+using FluentValidation;
+using PucCrypto.BuildingBlocks.Abstractions.Endpoints;
+using static ArchUnitNET.Fluent.ArchRuleDefinition;
 
 namespace PucCrypto.Forecast.ArchitectureTests;
 
-/// <summary>Namespaces e assemblies das camadas do serviço.</summary>
+/// <summary>Namespaces, assemblies e camadas do serviço carregados pelo ArchUnitNET.</summary>
 internal static class Layers
 {
     public const string DomainNamespace = "PucCrypto.Forecast.Domain";
@@ -31,4 +37,25 @@ internal static class Layers
     public static Assembly Application => Assembly.Load(ApplicationNamespace);
 
     public static Assembly Infrastructure => Assembly.Load(InfrastructureNamespace);
+
+    public static Assembly Api => Assembly.Load(ApiNamespace);
+
+    /// <summary>Camadas do serviço mais os assemblies dos contratos usados nas convenções das slices.</summary>
+    public static readonly Architecture Architecture =
+        new ArchLoader()
+            .LoadAssemblies(Domain, Application, Infrastructure, Api, typeof(IEndpoint).Assembly, typeof(IValidator).Assembly)
+            .Build();
+
+    public static readonly IObjectProvider<IType> DomainLayer =
+        Types().That().ResideInAssembly(Domain).As("Domain");
+
+    public static readonly IObjectProvider<IType> ApplicationLayer =
+        Types().That().ResideInAssembly(Application).As("Application");
+
+    public static readonly IObjectProvider<IType> InfrastructureLayer =
+        Types().That().ResideInAssembly(Infrastructure).As("Infrastructure");
+
+    /// <summary>Regex que casa com qualquer um dos namespaces informados ou com seus sub-namespaces.</summary>
+    public static string AnyNamespaceOf(params string[] namespaces) =>
+        "^(" + string.Join('|', namespaces.Select(Regex.Escape)) + @")(\..+)?$";
 }

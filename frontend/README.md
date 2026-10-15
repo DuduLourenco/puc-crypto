@@ -114,6 +114,7 @@ docker build --build-arg VITE_BFF_URL=<url-do-gateway> -t <usuario>/puccrypto/fr
 
 ## Alunos
 
-- _Nome do aluno 1_
-- _Nome do aluno 2_
-- _Nome do aluno 3_
+- Eduardo Lourenço da Silva
+- Gabriel Pereira Lugon Moulin
+- João Pedro Novak Rausis
+- Vitor Vieira Machado

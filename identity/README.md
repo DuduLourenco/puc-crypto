@@ -30,7 +30,7 @@ Os casos de uso são organizados em Vertical Slices. Cada pasta de `Application/
 - Entity Framework Core com PostgreSQL
 - FluentValidation, BCrypt.Net, JWT (HS256)
 - Swagger (Swashbuckle)
-- xUnit e NetArchTest
+- xUnit e ArchUnitNET (testes de arquitetura)
 - Docker
 
 ## Como rodar localmente
@@ -80,7 +80,7 @@ dotnet test
 ```
 
 - `tests/PucCrypto.Identity.UnitTests`: entidade, handlers, validadores, hash de senha e emissão do token.
-- `tests/PucCrypto.Identity.ArchitectureTests`: Domain não depende de nada; Application não depende de Infrastructure; slices não referenciam outras slices e seguem a convenção de nomes.
+- `tests/PucCrypto.Identity.ArchitectureTests` (ArchUnitNET): Domain não depende de nada; Application não depende de Infrastructure; slices não referenciam outras slices e seguem a convenção de nomes.
 
 ## Imagem Docker
 
@@ -98,6 +98,7 @@ docker build -t <usuario>/puccrypto/identity:v1 .
 
 ## Alunos
 
-- _Nome do aluno 1_
-- _Nome do aluno 2_
-- _Nome do aluno 3_
+- Eduardo Lourenço da Silva
+- Gabriel Pereira Lugon Moulin
+- João Pedro Novak Rausis
+- Vitor Vieira Machado

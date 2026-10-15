@@ -36,7 +36,7 @@ As decisões 025 a 032 decorrem do enunciado final do PJBL ([enunciado-pjbl.md](
 | 028 | Gateway gerenciado na nuvem, apenas na frente do BFF | 3R | Aceita |
 | 029 | Previsão como Azure Function HTTP, sem banco | 3R | Aceita |
 | 030 | RabbitMQ gerenciado como broker da nuvem | 3R | Aceita |
-| 031 | Testes unitários e de arquitetura em cada repositório | 3R | Aceita |
+| 031 | Testes unitários e de arquitetura em cada repositório | 3R | Alterada pelo ADR-048 |
 | 032 | Swagger em todos os serviços | 3R | Aceita |
 | 033 | CRUD do catálogo separado da lista do usuário | 4R | Aceita |
 | 034 | Catalog em Azure SQL com EF Core, retentativa e datas em UTC | 4R | Aceita |
@@ -47,12 +47,13 @@ As decisões 025 a 032 decorrem do enunciado final do PJBL ([enunciado-pjbl.md](
 | 039 | Previsão por regressão SDCA do ML.NET sobre variações de preço | 6 | Aceita |
 | 040 | Function App em camadas, com os gatilhos na camada API | 6 | Aceita |
 | 041 | Coleta agendada por Function que chama o MarketData | 6 | Aceita |
-| 042 | BFF em NestJS 11, com Domain e Application sem framework | 7 | Aceita |
+| 042 | BFF em NestJS 11, com Domain e Application sem framework | 7 | Alterada pelo ADR-048 |
 | 043 | `/aggregated-data` com falha parcial por criptomoeda | 7 | Aceita |
 | 044 | BFF valida o JWT e repassa token e erros | 7 | Aceita |
 | 045 | Microfrontends integrados em tempo de execução, com sessão no navegador | 8 | Aceita |
 | 046 | Camadas e slices também no frontend | 8 | Aceita |
 | 047 | Gráfico de linha único para histórico e previsão | 8 | Aceita |
+| 048 | ArchUnitNET e ArchUnitTS nos testes de arquitetura do backend | 9 | Aceita |
 
 ---
 
@@ -619,3 +620,15 @@ As decisões 025 a 032 decorrem do enunciado final do PJBL ([enunciado-pjbl.md](
 **Justificativa.** As duas séries têm a mesma unidade e são contínuas no tempo, então um eixo único as compara sem distorção. O tracejado e a legenda identificam a previsão sem depender só da cor. Em um gráfico de linha de preços, um eixo a partir de zero esconderia a variação, que é a informação buscada.
 
 **Consequências.** A variação parece maior do que seria em um eixo a partir de zero; os números de destaque e a tabela dão a referência. O gráfico supõe preços em uma única moeda (dólar).
+
+## ADR-048 — ArchUnitNET e ArchUnitTS nos testes de arquitetura do backend
+
+**Contexto.** Uma tarefa da disciplina pede testes de arquitetura do backend com bibliotecas específicas: ArchUnitNET para C# e ArchUnitTS para Node. Os serviços .NET usavam NetArchTest (ADR-031) e o BFF usava dependency-cruiser (ADR-042).
+
+**Decisão.** Os projetos `<Servico>.ArchitectureTests` do Catalog, MarketData, Identity e da Function de previsão passam a usar ArchUnitNET (`TngTech.ArchUnitNET.xUnit`). O BFF passa a usar ArchUnitTS (pacote `archunit`) em uma suíte Jest em `test/architecture`, executada por `npm run test:arch`. As regras continuam as mesmas: dependências apontando para dentro, Domain e Application sem tecnologias de infraestrutura, slices independentes e com a convenção de nomes, e, no BFF, ausência de ciclos. O frontend continua com dependency-cruiser.
+
+**Alternativas.** Manter as ferramentas anteriores. Usar as duas ferramentas lado a lado.
+
+**Justificativa.** Seguir as bibliotecas pedidas pela tarefa. Ter duas ferramentas verificando as mesmas regras só duplicaria a manutenção.
+
+**Consequências.** Altera os ADR-031 e ADR-042. O ArchUnitNET só conhece tipos referenciados pelos assemblies carregados, então os testes carregam também os assemblies dos contratos (`BuildingBlocks.Abstractions` e FluentValidation). No BFF, a regra "Application não importa pacotes npm" virou uma condição própria do ArchUnitTS, que verifica que os imports são relativos.

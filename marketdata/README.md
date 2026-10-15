@@ -58,7 +58,7 @@ As rotas exigem o JWT emitido pelo serviço Identity, exceto `POST /prices/colle
 - RabbitMQ (cliente RabbitMQ.Client)
 - FluentValidation, autenticação JWT Bearer
 - Swagger (Swashbuckle)
-- xUnit e NetArchTest
+- xUnit e ArchUnitNET (testes de arquitetura)
 - Docker
 
 ## Como rodar localmente
@@ -111,7 +111,7 @@ dotnet test
 ```
 
 - `tests/PucCrypto.MarketData.UnitTests`: entidades, as slices acionadas por eventos, a coleta, o CRUD de preços, os validadores e a leitura das respostas da CoinGecko.
-- `tests/PucCrypto.MarketData.ArchitectureTests`: Domain não depende de nada (nem do driver do MongoDB); Application não depende de Infrastructure; slices não referenciam outras slices e seguem a convenção de nomes.
+- `tests/PucCrypto.MarketData.ArchitectureTests` (ArchUnitNET): Domain não depende de nada (nem do driver do MongoDB); Application não depende de Infrastructure; slices não referenciam outras slices e seguem a convenção de nomes.
 
 ## Imagem Docker
 
@@ -129,6 +129,7 @@ docker build -t <usuario>/puccrypto/marketdata:v1 .
 
 ## Alunos
 
-- _Nome do aluno 1_
-- _Nome do aluno 2_
-- _Nome do aluno 3_
+- Eduardo Lourenço da Silva
+- Gabriel Pereira Lugon Moulin
+- João Pedro Novak Rausis
+- Vitor Vieira Machado

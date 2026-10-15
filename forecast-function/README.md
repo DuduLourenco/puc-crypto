@@ -75,7 +75,7 @@ Erros: 400 (corpo inválido ou validação, no formato Problem Details) e 401 (s
 - .NET 8, Azure Functions v4 (isolated worker, integração com ASP.NET Core)
 - ML.NET (regressão SDCA)
 - FluentValidation
-- xUnit e NetArchTest
+- xUnit e ArchUnitNET (testes de arquitetura)
 - Docker (imagem do runtime do Azure Functions) e Azurite
 
 ## Como rodar localmente
@@ -118,7 +118,7 @@ dotnet test
 ```
 
 - `tests/PucCrypto.Forecast.UnitTests`: série de preços, validação, handlers, o modelo ML.NET treinado com séries sintéticas (constante, alta, queda, oscilação) e o cliente do MarketData.
-- `tests/PucCrypto.Forecast.ArchitectureTests`: Domain não depende de nada; Application não depende de Infrastructure, do ML.NET nem do SDK do Azure Functions; slices não referenciam outras slices e seguem a convenção de nomes.
+- `tests/PucCrypto.Forecast.ArchitectureTests` (ArchUnitNET): Domain não depende de nada; Application não depende de Infrastructure, do ML.NET nem do SDK do Azure Functions; slices não referenciam outras slices e seguem a convenção de nomes.
 
 ## URLs na nuvem
 
@@ -129,6 +129,7 @@ dotnet test
 
 ## Alunos
 
-- _Nome do aluno 1_
-- _Nome do aluno 2_
-- _Nome do aluno 3_
+- Eduardo Lourenço da Silva
+- Gabriel Pereira Lugon Moulin
+- João Pedro Novak Rausis
+- Vitor Vieira Machado

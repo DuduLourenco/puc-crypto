@@ -1,5 +1,6 @@
-using NetArchTest.Rules;
+using ArchUnitNET.xUnit;
 using Xunit;
+using static ArchUnitNET.Fluent.ArchRuleDefinition;
 
 namespace PucCrypto.Forecast.ArchitectureTests;
 
@@ -20,55 +21,47 @@ public sealed class LayerDependencyTests
             .. Layers.InfrastructureTechnologies
         ];
 
-        var result = Types.InAssembly(Layers.Domain)
-            .ShouldNot().HaveDependencyOnAny(forbidden)
-            .GetResult();
-
-        AssertSuccessful(result);
+        Types().That().Are(Layers.DomainLayer)
+            .Should().NotDependOnAnyTypesThat().ResideInNamespaceMatching(Layers.AnyNamespaceOf(forbidden))
+            .Because("o Domain é o núcleo e não conhece camadas externas nem frameworks")
+            .Check(Layers.Architecture);
     }
 
     [Fact]
-    public void Domain_ReferenciaApenasABibliotecaBaseDoDotNet()
+    public void Domain_DependeApenasDeSiMesmoEDaBibliotecaBaseDoDotNet()
     {
-        var references = Layers.Domain.GetReferencedAssemblies()
-            .Select(reference => reference.Name!)
-            .Where(name => !name.StartsWith("System", StringComparison.Ordinal) && name != "netstandard");
-
-        Assert.Empty(references);
+        Types().That().Are(Layers.DomainLayer)
+            .Should().OnlyDependOnTypesThat().ResideInNamespaceMatching(Layers.AnyNamespaceOf(Layers.DomainNamespace, "System"))
+            .Because("o Domain é C# puro")
+            .Check(Layers.Architecture);
     }
 
     [Fact]
     public void Application_NaoDependeDeInfrastructureNemDeApi()
     {
-        var result = Types.InAssembly(Layers.Application)
-            .ShouldNot().HaveDependencyOnAny(Layers.InfrastructureNamespace, Layers.ApiNamespace)
-            .GetResult();
-
-        AssertSuccessful(result);
+        Types().That().Are(Layers.ApplicationLayer)
+            .Should().NotDependOnAnyTypesThat().ResideInNamespaceMatching(
+                Layers.AnyNamespaceOf(Layers.InfrastructureNamespace, Layers.ApiNamespace))
+            .Because("a Application define portas e a Infrastructure as implementa")
+            .Check(Layers.Architecture);
     }
 
     [Fact]
     public void Application_NaoDependeDeTecnologiasDeInfraestrutura()
     {
-        var result = Types.InAssembly(Layers.Application)
-            .ShouldNot().HaveDependencyOnAny(Layers.InfrastructureTechnologies)
-            .GetResult();
-
-        AssertSuccessful(result);
+        Types().That().Are(Layers.ApplicationLayer)
+            .Should().NotDependOnAnyTypesThat().ResideInNamespaceMatching(
+                Layers.AnyNamespaceOf(Layers.InfrastructureTechnologies))
+            .Because("bancos, mensageria e SDKs de nuvem ficam na Infrastructure")
+            .Check(Layers.Architecture);
     }
 
     [Fact]
     public void Infrastructure_NaoDependeDeApi()
     {
-        var result = Types.InAssembly(Layers.Infrastructure)
-            .ShouldNot().HaveDependencyOn(Layers.ApiNamespace)
-            .GetResult();
-
-        AssertSuccessful(result);
+        Types().That().Are(Layers.InfrastructureLayer)
+            .Should().NotDependOnAnyTypesThat().ResideInNamespaceMatching(Layers.AnyNamespaceOf(Layers.ApiNamespace))
+            .Because("os adaptadores não conhecem a camada de entrada HTTP")
+            .Check(Layers.Architecture);
     }
-
-    private static void AssertSuccessful(TestResult result) =>
-        Assert.True(
-            result.IsSuccessful,
-            "Tipos que violam a regra: " + string.Join(", ", result.FailingTypeNames ?? []));
 }

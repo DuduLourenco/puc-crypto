@@ -66,7 +66,7 @@ Os eventos vão para a exchange `puccrypto.events` (tipo topic) do RabbitMQ, com
 - RabbitMQ (cliente RabbitMQ.Client)
 - FluentValidation, autenticação JWT Bearer
 - Swagger (Swashbuckle)
-- xUnit e NetArchTest
+- xUnit e ArchUnitNET (testes de arquitetura)
 - Docker
 
 ## Como rodar localmente
@@ -119,7 +119,7 @@ dotnet test
 ```
 
 - `tests/PucCrypto.Catalog.UnitTests`: entidades, os onze handlers e os validadores.
-- `tests/PucCrypto.Catalog.ArchitectureTests`: Domain não depende de nada; Application não depende de Infrastructure; slices não referenciam outras slices e seguem a convenção de nomes.
+- `tests/PucCrypto.Catalog.ArchitectureTests` (ArchUnitNET): Domain não depende de nada; Application não depende de Infrastructure; slices não referenciam outras slices e seguem a convenção de nomes.
 
 ## Imagem Docker
 
@@ -137,6 +137,7 @@ docker build -t <usuario>/puccrypto/catalog:v1 .
 
 ## Alunos
 
-- _Nome do aluno 1_
-- _Nome do aluno 2_
-- _Nome do aluno 3_
+- Eduardo Lourenço da Silva
+- Gabriel Pereira Lugon Moulin
+- João Pedro Novak Rausis
+- Vitor Vieira Machado

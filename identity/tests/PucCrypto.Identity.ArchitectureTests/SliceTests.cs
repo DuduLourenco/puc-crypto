@@ -1,9 +1,14 @@
+using System.Text.RegularExpressions;
+using ArchUnitNET.Domain;
+using ArchUnitNET.Fluent;
+using ArchUnitNET.Fluent.Conditions;
+using ArchUnitNET.xUnit;
 using FluentValidation;
-using NetArchTest.Rules;
 using PucCrypto.BuildingBlocks.Abstractions.Endpoints;
 using PucCrypto.BuildingBlocks.Abstractions.Events;
 using PucCrypto.BuildingBlocks.Abstractions.Handlers;
 using Xunit;
+using static ArchUnitNET.Fluent.ArchRuleDefinition;
 
 namespace PucCrypto.Identity.ArchitectureTests;
 
@@ -26,46 +31,38 @@ public sealed class SliceTests
                 continue;
             }
 
-            var result = Types.InAssembly(Layers.Application)
-                .That().ResideInNamespace(slice)
-                .ShouldNot().HaveDependencyOnAny(otherSlices)
-                .GetResult();
-
-            Assert.True(
-                result.IsSuccessful,
-                "Tipos que violam a regra: " + string.Join(", ", result.FailingTypeNames ?? []));
+            Types().That().ResideInNamespaceMatching(Layers.AnyNamespaceOf(slice))
+                .Should().NotDependOnAnyTypesThat().ResideInNamespaceMatching(Layers.AnyNamespaceOf(otherSlices))
+                .Because($"a slice {slice.Split('.').Last()} é independente das demais")
+                .Check(Layers.Architecture);
         }
     }
 
-    [Fact]
-    public void Slices_SeguemAConvencaoDeNomes()
+    [Theory]
+    [InlineData(typeof(IEndpoint), "Endpoint")]
+    [InlineData(typeof(IValidator), "Validator")]
+    [InlineData(typeof(ICommandHandler<,>), "Handler")]
+    [InlineData(typeof(ICommandHandler<>), "Handler")]
+    [InlineData(typeof(IQueryHandler<,>), "Handler")]
+    [InlineData(typeof(IEventConsumer<>), "Consumer")]
+    public void Slices_SeguemAConvencaoDeNomes(Type contract, string suffix)
     {
-        var violations = new List<string>();
+        Classes().That().AreNotAbstract().And().ResideInAssembly(Layers.Application).And().AreAssignableTo(contract)
+            .Should().ResideInNamespaceMatching($@"^{Regex.Escape(Layers.FeaturesNamespace)}\.[^.]+$")
+            .AndShould().FollowCustomCondition(
+                type => NamedAfterSlice(type, suffix),
+                $"se chamar <CasoDeUso>{suffix}")
+            .WithoutRequiringPositiveResults()
+            .Check(Layers.Architecture);
+    }
 
-        foreach (var type in Layers.Application.GetTypes().Where(type => type is { IsClass: true, IsAbstract: false }))
-        {
-            var expectedSuffix =
-                type.IsAssignableTo(typeof(IEndpoint)) ? "Endpoint"
-                : type.IsAssignableTo(typeof(IValidator)) ? "Validator"
-                : ImplementsHandler(type) ? "Handler"
-                : ImplementsConsumer(type) ? "Consumer"
-                : null;
+    private static ConditionResult NamedAfterSlice(IType type, string suffix)
+    {
+        var expectedName = type.Namespace.Name.Split('.').Last() + suffix;
 
-            if (expectedSuffix is null)
-            {
-                continue;
-            }
-
-            var sliceName = type.Namespace?.Split('.').Last();
-            var isInsideSlice = type.Namespace?.StartsWith(Layers.FeaturesNamespace + ".", StringComparison.Ordinal) == true;
-
-            if (!isInsideSlice || type.Name != sliceName + expectedSuffix)
-            {
-                violations.Add($"{type.FullName} deveria ser Features.<CasoDeUso>.<CasoDeUso>{expectedSuffix}");
-            }
-        }
-
-        Assert.Empty(violations);
+        return type.Name == expectedName
+            ? new ConditionResult(type, true)
+            : new ConditionResult(type, false, $"deveria se chamar {expectedName}");
     }
 
     private static string[] SliceNamespaces() =>
@@ -75,15 +72,4 @@ public sealed class SliceTests
             .Select(ns => string.Join('.', ns!.Split('.').Take(Layers.FeaturesNamespace.Split('.').Length + 1)))
             .Distinct()
             .ToArray();
-
-    private static bool ImplementsConsumer(Type type) =>
-        type.GetInterfaces().Any(contract =>
-            contract.IsGenericType && contract.GetGenericTypeDefinition() == typeof(IEventConsumer<>));
-
-    private static bool ImplementsHandler(Type type) =>
-        type.GetInterfaces().Any(contract =>
-            contract.IsGenericType &&
-            (contract.GetGenericTypeDefinition() == typeof(ICommandHandler<,>) ||
-             contract.GetGenericTypeDefinition() == typeof(ICommandHandler<>) ||
-             contract.GetGenericTypeDefinition() == typeof(IQueryHandler<,>)));
 }
