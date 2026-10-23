@@ -35,7 +35,7 @@ Lista do que o enunciado pede no PDF da Entrega 3 (ARC42, C4, Canvas, prints e v
 |---|---|---|
 | Swagger do BFF | [entrega-deploy/swagger-1-bff.png](entrega-deploy/swagger-1-bff.png) | Pronto |
 | Swagger dos microsserviços | [swagger-2-catalog.png](entrega-deploy/swagger-2-catalog.png), [swagger-3-marketdata.png](entrega-deploy/swagger-3-marketdata.png), [swagger-4-identity.png](entrega-deploy/swagger-4-identity.png) | Pronto |
-| Frontend funcionando | [site-1-acesso.png](entrega-deploy/site-1-acesso.png), [site-2-criptomoedas.png](entrega-deploy/site-2-criptomoedas.png), [site-3-dashboard.png](entrega-deploy/site-3-dashboard.png), [site-4-dashboard-tooltip.png](entrega-deploy/site-4-dashboard-tooltip.png) | Pronto |
+| Frontend funcionando | [site-1-acesso.png](entrega-deploy/site-1-acesso.png), [site-2-criptomoedas.png](entrega-deploy/site-2-criptomoedas.png), [site-3-dashboard.png](entrega-deploy/site-3-dashboard.png), [site-4-dashboard-tooltip.png](entrega-deploy/site-4-dashboard-tooltip.png), [site-5-dashboard-sol-30-dias.png](entrega-deploy/site-5-dashboard-sol-30-dias.png) | Pronto |
 | API Gateway | Print do API Management no portal (item 4 abaixo). Para mostrar o Gateway funcionando, o Swagger do BFF abre pela URL do Gateway: https://apim-puccrypto-f43a29.azure-api.net/api/swagger | **Pendente** (exige o login no portal) |
 | Docker Hub (outra tarefa) | [entrega-deploy/dockerhub-0-perfil.png](entrega-deploy/dockerhub-0-perfil.png) e seguintes | Pronto |
 | Portal Azure (outra tarefa) | — | **Pendente** (ver abaixo) |

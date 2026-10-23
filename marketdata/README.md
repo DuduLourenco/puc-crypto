@@ -31,7 +31,7 @@ Os casos de uso são Vertical Slices em `Application/Features`. Uma slice tem co
 |---|---|---|
 | `TrackAsset` | Evento `CryptoRegistered` | Acompanha a criptomoeda e carrega o histórico inicial |
 | `UntrackAsset` | Evento `CryptoRemoved` | Remove a criptomoeda e o histórico |
-| `CollectPrices` | `POST /prices/collect` | Coleta o preço atual de todos os ativos e publica `PricesIngested` |
+| `CollectPrices` | `POST /prices/collect` | Coleta o preço atual de todos os ativos e publica `PricesIngested`. O histórico guarda um preço por dia (UTC): a coleta substitui os preços anteriores do mesmo dia (ADR-053) |
 | `ListTrackedAssets` | `GET /assets` | Lista as criptomoedas acompanhadas |
 | `CreatePricePoint` | `POST /prices` | Cadastra um preço manualmente |
 | `ListPricePoints` | `GET /prices?cryptocurrencyId=&from=&to=&limit=` | Histórico de uma criptomoeda, em ordem cronológica |

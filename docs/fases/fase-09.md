@@ -24,8 +24,8 @@ Conta de demonstração: `demo@puccrypto.dev`, senha `PucCrypto-demo-996f85`, co
 | Componente | Serviço | Onde | Escala |
 |---|---|---|---|
 | Frontend (shell e microfrontends, nginx) | Azure Container Apps | canadacentral | 0 a 2 réplicas |
-| BFF | Azure Container Apps | canadacentral | 0 a 2 |
-| Identity | Azure Container Apps + Azure SQL Database (`identity_db`, oferta gratuita, serverless) | canadacentral | 0 a 2 |
+| BFF | Azure Container Apps | canadacentral | 1 a 2 (desde a fase 10, ADR-054) |
+| Identity | Azure Container Apps + Azure SQL Database (`identity_db`, oferta gratuita, serverless) | canadacentral | 1 a 2 (desde a fase 10, ADR-054) |
 | Catalog | Azure Container Apps + Azure SQL Database (`catalog_db`, oferta gratuita, serverless) | canadacentral | 1 a 2 (consome eventos) |
 | MarketData | Azure Container Apps + MongoDB Atlas (M0) | canadacentral + Atlas | 1 a 2 (consome eventos) |
 | Function `GetForecast` e coleta agendada | Azure Functions, plano Flex Consumption | canadacentral | Escala a zero |
@@ -101,7 +101,7 @@ Verificação: testes unitários e de arquitetura do Identity aprovados; no Comp
 
 ## 8. Custos e encerramento
 
-Catalog e MarketData mantêm uma réplica ativa, o principal custo; os demais apps e a Function escalam a zero; Azure SQL (dois bancos), API Management (Consumption), Atlas M0 e CloudAMQP estão em planos gratuitos. Tudo é cobrado do crédito da assinatura de estudante. Para apagar os recursos depois da avaliação: `az group delete -n rg-puccrypto`.
+Catalog, MarketData e, desde a fase 10, Identity e BFF mantêm uma réplica ativa, o principal custo (cerca de US$ 6 por mês cada); o frontend e a Function escalam a zero; Azure SQL (dois bancos), API Management (Consumption), Atlas M0 e CloudAMQP estão em planos gratuitos. Tudo é cobrado do crédito da assinatura de estudante. Para apagar os recursos depois da avaliação: `az group delete -n rg-puccrypto`.
 
 ## 9. Limitações e pendências
 

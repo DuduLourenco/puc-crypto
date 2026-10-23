@@ -57,6 +57,51 @@ public sealed class LagRegressionForecastModelTests
     }
 
     [Fact]
+    public void SerieComIntervalosMisturados_NaoLevaOPrecoAZero()
+    {
+        // Como o histórico da nuvem antes da correção da coleta: 45 preços diários, com variações de
+        // alguns por cento, seguidos de 45 preços a cada 30 minutos, com variações bem menores.
+        var random = new Random(42);
+        var observations = new List<PriceObservation>();
+        var price = 100.0;
+        for (var day = 0; day < 45; day++)
+        {
+            price *= 1 + (random.NextDouble() - 0.5) * 0.08;
+            observations.Add(new PriceObservation(SeriesFactory.Start.AddDays(day), (decimal)price));
+        }
+        for (var step = 1; step <= 45; step++)
+        {
+            price *= 1 + (random.NextDouble() - 0.5) * 0.004;
+            observations.Add(new PriceObservation(SeriesFactory.Start.AddDays(44).AddMinutes(30 * step), (decimal)price));
+        }
+        var series = PriceSeries.Create(observations);
+        var prices = observations.Select(observation => observation.PriceUsd).ToList();
+        var largestChange = prices.Zip(prices.Skip(1), (previous, next) => Math.Abs(next / previous - 1)).Max();
+
+        var forecast = _model.Predict(series, 30);
+
+        Assert.All(forecast, value => Assert.True(value.PriceUsd > 0));
+        var steps = new[] { series.Last.PriceUsd }.Concat(forecast.Select(value => value.PriceUsd)).ToList();
+        Assert.All(steps.Zip(steps.Skip(1)), pair =>
+            Assert.True(Math.Abs(pair.Second / pair.First - 1) <= largestChange + 0.0001m));
+    }
+
+    [Fact]
+    public void SerieCurta_NaoProjetaVariacoesExtremas()
+    {
+        // 14 preços diários, o mínimo aceito, com variações de até 3% ao dia e sem tendência definida.
+        var random = new Random(7);
+        var price = 100m;
+        var observations = SeriesFactory.Daily(14, _ => price *= 1 + (decimal)((random.NextDouble() - 0.5) * 0.06));
+        var series = PriceSeries.Create(observations);
+
+        var forecast = _model.Predict(series, 30);
+
+        Assert.InRange(forecast[^1].PriceUsd, series.Last.PriceUsd * 0.75m, series.Last.PriceUsd * 1.25m);
+        Assert.True(forecast[^1].UpperUsd - forecast[^1].LowerUsd > series.Last.PriceUsd * 0.05m);
+    }
+
+    [Fact]
     public void MesmaSerie_ProduzAMesmaPrevisao()
     {
         var series = PriceSeries.Create(SeriesFactory.Daily(90, day => 3000m + 40m * (decimal)Math.Cos(day / 3.0)));

@@ -78,4 +78,9 @@ internal sealed class PricePointRepository(MarketDataMongoContext context) : IPr
 
     public Task DeleteByCryptocurrencyAsync(Guid cryptocurrencyId, CancellationToken cancellationToken) =>
         context.PricePoints.DeleteManyAsync(pricePoint => pricePoint.CryptocurrencyId == cryptocurrencyId, cancellationToken);
+
+    public Task DeleteInRangeAsync(Guid cryptocurrencyId, DateTime from, DateTime to, CancellationToken cancellationToken) =>
+        context.PricePoints.DeleteManyAsync(
+            pricePoint => pricePoint.CryptocurrencyId == cryptocurrencyId && pricePoint.Timestamp >= from && pricePoint.Timestamp < to,
+            cancellationToken);
 }

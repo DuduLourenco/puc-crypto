@@ -14,6 +14,11 @@ namespace PucCrypto.Forecast.Infrastructure.MachineLearning;
 /// do erro do modelo na própria série e cresce com a raiz do número de passos.
 /// </summary>
 /// <remarks>
+/// Na previsão passo a passo, o erro de um passo entra no seguinte e pode crescer até levar o preço
+/// a zero. Por isso cada variação prevista fica limitada à menor e à maior variação do histórico,
+/// e os pesos do modelo são regularizados.
+/// </remarks>
+/// <remarks>
 /// O forecasting por SSA do ML.NET depende da Intel MKL, que não existe para ARM64 (ADR-039).
 /// O SDCA é totalmente gerenciado e roda em qualquer arquitetura.
 /// </remarks>
@@ -22,6 +27,11 @@ internal sealed class LagRegressionForecastModel : IForecastModel
     public const int Lags = 7;
 
     private const float ConfidenceZ = 1.96f;
+
+    // Regularização L2 forte: com séries curtas (14 a 30 pontos há poucas linhas de treino para
+    // 7 entradas), o modelo sem ela decorava a série e projetava altas ou quedas de dezenas de por
+    // cento. Com ela, os pesos ficam pequenos e a previsão segue a variação média recente.
+    private const float L2Regularization = 10f;
 
     public string Description => $"ML.NET SDCA: regressão linear sobre as variações dos {Lags} preços anteriores";
 
@@ -46,12 +56,16 @@ internal sealed class LagRegressionForecastModel : IForecastModel
             {
                 NumberOfThreads = 1,
                 Shuffle = false,
-                MaximumNumberOfIterations = 200
+                MaximumNumberOfIterations = 200,
+                L2Regularization = L2Regularization
             }));
         var model = pipeline.Fit(mlContext.Data.LoadFromEnumerable(trainingRows));
         var engine = mlContext.Model.CreatePredictionEngine<LagRow, LagPrediction>(model);
 
         var residualStdDev = StandardDeviation(trainingRows.Select(row => row.Label - engine.Predict(row).Score));
+
+        var lowestReturn = returns.Min();
+        var highestReturn = returns.Max();
 
         var window = returns.ToList();
         var price = prices[^1];
@@ -59,7 +73,8 @@ internal sealed class LagRegressionForecastModel : IForecastModel
 
         for (var step = 1; step <= horizon; step++)
         {
-            var nextReturn = engine.Predict(new LagRow { Features = PreviousValues(window, window.Count) }).Score;
+            var predictedReturn = engine.Predict(new LagRow { Features = PreviousValues(window, window.Count) }).Score;
+            var nextReturn = Math.Clamp(predictedReturn, lowestReturn, highestReturn);
             var margin = ConfidenceZ * residualStdDev * Math.Sqrt(step) / 100;
 
             window.Add(nextReturn);

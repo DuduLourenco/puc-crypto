@@ -153,9 +153,11 @@ deploy_app() {
   app_url "$1"
 }
 
+# Identity e BFF ficam com uma réplica ativa: cada um, partindo do zero, levava de 45 s a 1 min para
+# responder, e o primeiro login depois de alguns minutos sem uso falhava ou demorava (ADR-054).
 SECRETS=("db=$identity_db" "jwt=$JWT_SIGNING_KEY")
 ENVS=("ConnectionStrings__Database=secretref:db" "Jwt__SigningKey=secretref:jwt")
-deploy_app identity 8080 0
+deploy_app identity 8080 1
 
 # Daqui em diante, os serviços precisam do MongoDB Atlas e do CloudAMQP.
 require_vars MONGODB_URI RABBITMQ_URI
@@ -205,8 +207,10 @@ SECRETS=("jwt=$JWT_SIGNING_KEY" "forecast-key=$FORECAST_FUNCTION_KEY")
 ENVS=("PORT=3000" "IDENTITY_URL=$(app_url identity)" "CATALOG_URL=$(app_url catalog)"
   "MARKETDATA_URL=$(app_url marketdata)" "FORECAST_URL=$function_url"
   "FORECAST_FUNCTION_KEY=secretref:forecast-key" "JWT_SIGNING_KEY=secretref:jwt"
-  "CORS_ORIGINS=$(app_url frontend)")
-deploy_app bff 3000 0
+  "CORS_ORIGINS=$(app_url frontend)"
+  # Tempo maior que o padrão de 20 s, para cobrir a partida a frio da Function e dos apps (ADR-054).
+  "UPSTREAM_TIMEOUT_MS=60000")
+deploy_app bff 3000 1
 
 SECRETS=()
 ENVS=("NGINX_ENTRYPOINT_QUIET_LOGS=1")

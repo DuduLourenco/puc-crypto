@@ -53,6 +53,7 @@ Todas as imagens têm as tags `v1` e `latest`, para `linux/amd64` e `linux/arm64
 | [site-2-criptomoedas.png](site-2-criptomoedas.png) | Lista do usuário e catálogo, com os preços coletados da CoinGecko |
 | [site-3-dashboard.png](site-3-dashboard.png) | Dashboard com histórico de 90 dias, previsão por ML.NET e intervalo de 95% |
 | [site-4-dashboard-tooltip.png](site-4-dashboard-tooltip.png) | Tooltip do gráfico |
+| [site-5-dashboard-sol-30-dias.png](site-5-dashboard-sol-30-dias.png) | Solana com previsão de 30 dias |
 | [swagger-1-bff.png](swagger-1-bff.png) a [swagger-4-identity.png](swagger-4-identity.png) | Swagger do BFF e dos microsserviços, na nuvem |
 
 ### Portal Azure (a tirar com o login do grupo)

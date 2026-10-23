@@ -54,4 +54,10 @@ internal sealed class InMemoryPricePointRepository : IPricePointRepository
         Items.RemoveAll(item => item.CryptocurrencyId == cryptocurrencyId);
         return Task.CompletedTask;
     }
+
+    public Task DeleteInRangeAsync(Guid cryptocurrencyId, DateTime from, DateTime to, CancellationToken cancellationToken)
+    {
+        Items.RemoveAll(item => item.CryptocurrencyId == cryptocurrencyId && item.Timestamp >= from && item.Timestamp < to);
+        return Task.CompletedTask;
+    }
 }

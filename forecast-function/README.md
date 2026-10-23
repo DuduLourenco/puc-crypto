@@ -16,7 +16,7 @@ O projeto segue Clean Architecture, com um projeto por camada e dependências ap
 
 | Camada | Projeto | Conteúdo |
 |---|---|---|
-| Domain | `src/PucCrypto.Forecast.Domain` | `PriceSeries` (ordena, remove instantes repetidos, calcula o intervalo típico), `PriceObservation`, `ForecastPoint`. Não depende de nada |
+| Domain | `src/PucCrypto.Forecast.Domain` | `PriceSeries` (ordena, remove instantes repetidos, calcula o intervalo típico e regulariza séries com intervalos misturados), `PriceObservation`, `ForecastPoint`. Não depende de nada |
 | Application | `src/PucCrypto.Forecast.Application` | Casos de uso em `Features/` e portas em `Abstractions/` |
 | Infrastructure | `src/PucCrypto.Forecast.Infrastructure` | Modelo ML.NET e cliente HTTP do MarketData |
 | API | `src/PucCrypto.Forecast.Api` | Function App (Azure Functions, isolated worker): os gatilhos ficam em `Functions/` |
@@ -31,6 +31,8 @@ Os casos de uso são Vertical Slices em `Application/Features`; a entrada de cad
 ### Modelo de previsão
 
 Regressão linear do ML.NET (SDCA) que aprende a próxima variação percentual do preço a partir das 7 variações anteriores. As entradas são padronizadas; a previsão é feita passo a passo, e cada variação prevista entra como dado do passo seguinte. O intervalo de 95% vem do erro do modelo na própria série e aumenta com o número de passos. A mesma série produz sempre a mesma previsão.
+
+Proteções (ADR-053): a série é regularizada no intervalo típico, a mediana dos intervalos ponderada pela duração; cada variação prevista fica limitada à menor e à maior variação do histórico; e o SDCA usa regularização L2 forte, para que séries curtas não gerem altas ou quedas extremas.
 
 O modelo é treinado a cada chamada, com a série recebida. É um modelo simples, adequado para demonstração; não é uma recomendação de investimento.
 

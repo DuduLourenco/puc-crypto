@@ -7,7 +7,12 @@ using PucCrypto.MarketData.Domain.PricePoints;
 
 namespace PucCrypto.MarketData.Application.Features.CollectPrices;
 
-/// <summary>Coleta o preço atual de todos os ativos acompanhados e publica PricesIngested para cada um.</summary>
+/// <summary>
+/// Coleta o preço atual de todos os ativos acompanhados e publica PricesIngested para cada um.
+/// O histórico guarda um preço por dia (UTC), como a carga inicial: cada coleta grava o preço atual
+/// e remove os preços anteriores do mesmo dia. Assim o histórico mantém um intervalo regular, que a
+/// previsão exige, e o último preço continua atualizado a cada coleta.
+/// </summary>
 internal sealed class CollectPricesHandler(
     ITrackedAssetRepository trackedAssetRepository,
     IPricePointRepository pricePointRepository,
@@ -57,6 +62,8 @@ internal sealed class CollectPricesHandler(
             var pricePoint = PricePoint.Create(asset.Id, price.Timestamp, price.PriceUsd, PriceSource.CoinGecko);
 
             await pricePointRepository.UpsertManyAsync([pricePoint], cancellationToken);
+            await pricePointRepository.DeleteInRangeAsync(
+                asset.Id, pricePoint.Timestamp.Date, pricePoint.Timestamp, cancellationToken);
             await PricesIngestedPublisher.PublishAsync(eventBus, asset, [pricePoint], now, cancellationToken);
 
             collected.Add(new CollectedPrice(asset.Id, asset.CoinGeckoId, pricePoint.PriceUsd, pricePoint.Timestamp));

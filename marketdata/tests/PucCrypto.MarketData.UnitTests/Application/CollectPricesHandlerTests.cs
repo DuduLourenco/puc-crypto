@@ -2,6 +2,7 @@ using PucCrypto.BuildingBlocks.Abstractions.Results;
 using PucCrypto.MarketData.Application.Abstractions;
 using PucCrypto.MarketData.Application.Features.CollectPrices;
 using PucCrypto.MarketData.Application.IntegrationEvents;
+using PucCrypto.MarketData.Domain.PricePoints;
 using PucCrypto.MarketData.Domain.TrackedAssets;
 using PucCrypto.MarketData.UnitTests.Fakes;
 using Xunit;
@@ -36,6 +37,25 @@ public sealed class CollectPricesHandlerTests
         Assert.Single(_prices.Items);
         var published = Assert.IsType<PricesIngested>(Assert.Single(_eventBus.Published));
         Assert.Equal(65000m, published.LatestPriceUsd);
+    }
+
+    [Fact]
+    public async Task MantemUmPrecoPorDia_SubstituindoOsAnterioresDoMesmoDia()
+    {
+        var bitcoin = TrackedAsset.Create(Guid.NewGuid(), "bitcoin", "BTC", "Bitcoin", Now.UtcDateTime);
+        _assets.Items.Add(bitcoin);
+        var yesterday = PricePoint.Create(bitcoin.Id, Now.UtcDateTime.Date.AddDays(-1), 64000m, PriceSource.CoinGecko);
+        var todayAtMidnight = PricePoint.Create(bitcoin.Id, Now.UtcDateTime.Date, 64500m, PriceSource.CoinGecko);
+        var earlierToday = PricePoint.Create(bitcoin.Id, Now.UtcDateTime.AddMinutes(-30), 64800m, PriceSource.CoinGecko);
+        _prices.Items.AddRange([yesterday, todayAtMidnight, earlierToday]);
+        _provider.CurrentPrices["bitcoin"] = new MarketPrice(Now.UtcDateTime.AddMinutes(-1), 65000m);
+
+        var result = await Handler.HandleAsync(new CollectPricesCommand(), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(
+            [(Now.UtcDateTime.Date.AddDays(-1), 64000m), (Now.UtcDateTime.AddMinutes(-1), 65000m)],
+            _prices.Items.OrderBy(item => item.Timestamp).Select(item => (item.Timestamp, item.PriceUsd)));
     }
 
     [Fact]

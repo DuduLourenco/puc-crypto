@@ -26,4 +26,7 @@ public interface IPricePointRepository
     Task DeleteAsync(Guid id, CancellationToken cancellationToken);
 
     Task DeleteByCryptocurrencyAsync(Guid cryptocurrencyId, CancellationToken cancellationToken);
+
+    /// <summary>Remove os preços da criptomoeda com instante em [<paramref name="from"/>, <paramref name="to"/>).</summary>
+    Task DeleteInRangeAsync(Guid cryptocurrencyId, DateTime from, DateTime to, CancellationToken cancellationToken);
 }

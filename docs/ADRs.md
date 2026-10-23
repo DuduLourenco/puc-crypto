@@ -44,7 +44,7 @@ As decisões 025 a 032 decorrem do enunciado final do PJBL ([enunciado-pjbl.md](
 | 036 | MarketData em MongoDB sem atributos do driver no Domain | 5 | Aceita |
 | 037 | Coleta da CoinGecko por endpoint protegido por chave | 5 | Aceita |
 | 038 | Catalog guarda o último preço a partir de `PricesIngested` | 5 | Aceita |
-| 039 | Previsão por regressão SDCA do ML.NET sobre variações de preço | 6 | Aceita |
+| 039 | Previsão por regressão SDCA do ML.NET sobre variações de preço | 6 | Alterada pelo ADR-053 |
 | 040 | Function App em camadas, com os gatilhos na camada API | 6 | Aceita |
 | 041 | Coleta agendada por Function que chama o MarketData | 6 | Aceita |
 | 042 | BFF em NestJS 11, com Domain e Application sem framework | 7 | Alterada pelo ADR-048 |
@@ -56,8 +56,10 @@ As decisões 025 a 032 decorrem do enunciado final do PJBL ([enunciado-pjbl.md](
 | 048 | ArchUnitNET e ArchUnitTS nos testes de arquitetura do backend | 9 | Aceita |
 | 049 | Repositório único, sem exportação para repositórios separados | 9 | Aceita |
 | 050 | Imagens no Docker Hub como `<usuário>/puccrypto-<serviço>` | 9 | Aceita |
-| 051 | Publicação no Azure Container Apps, Functions Flex Consumption e API Management | 9 | Alterada pelo ADR-052 |
+| 051 | Publicação no Azure Container Apps, Functions Flex Consumption e API Management | 9 | Alterada pelos ADR-052 e ADR-054 |
 | 052 | Identity em um segundo banco gratuito do Azure SQL | 9 | Aceita |
+| 053 | Um preço por dia no histórico e previsão protegida contra divergência | 10 | Aceita |
+| 054 | Identity e BFF com uma réplica ativa e tempo limite maior no BFF da nuvem | 10 | Aceita |
 
 ---
 
@@ -696,3 +698,31 @@ As decisões 025 a 032 decorrem do enunciado final do PJBL ([enunciado-pjbl.md](
 **Justificativa.** Elimina o principal custo fixo sem mudar Domain, Application nem API do Identity: a troca fica restrita à Infrastructure. O banco continua exclusivo do Identity: os dois bancos compartilham só o servidor, sem acesso de um serviço ao banco do outro. O Azure SQL já fazia parte da arquitetura, então não entra nova tecnologia.
 
 **Consequências.** Altera o ADR-027, em que o Identity mantinha o PostgreSQL, e o ADR-051. O PostgreSQL sai da arquitetura; o ambiente local passa a ter dois tipos de banco (SQL Server e MongoDB). Identity e Catalog dividem o servidor e a cota gratuita: se a cota mensal acabar, os dois bancos pausam até o mês seguinte. O primeiro login depois de um período sem uso é mais lento, enquanto o banco sai da pausa.
+
+## ADR-053 — Um preço por dia no histórico e previsão protegida contra divergência
+
+**Contexto.** Um dia depois da publicação, a previsão do dashboard levava o SOL a zero em 7 dias e o ETH em 30. O histórico de cada moeda misturava os preços diários da carga inicial com os preços da coleta agendada, gravados a cada 30 minutos. O modelo trata cada intervalo como um passo igual: aprendia com variações diárias e de 30 minutos ao mesmo tempo e, na previsão passo a passo, o erro crescia a cada passo até o preço chegar a zero. Com séries curtas, de 14 a 20 pontos, o modelo também decorava a série e projetava altas ou quedas de dezenas de por cento. Além disso, o histórico de "90 preços" passaria a cobrir menos de dois dias.
+
+**Decisão.**
+- **MarketData:** o histórico guarda um preço por dia (UTC). Cada coleta grava o preço atual e remove os preços anteriores do mesmo dia. A coleta continua a cada 30 minutos, então o último preço segue atualizado.
+- **Function, série:** o intervalo típico passa a ser a mediana dos intervalos ponderada pela duração, ou seja, o intervalo que cobre a maior parte do período. Uma série com intervalos misturados é regularizada: fica a observação mais recente de cada intervalo típico. Se sobrarem menos de 14 pontos, a série é usada como chegou.
+- **Function, modelo:** cada variação prevista fica limitada à menor e à maior variação do histórico, e o SDCA usa regularização L2 forte (10).
+- **Dados da nuvem:** os preços de 30 minutos já gravados foram reduzidos a um por dia.
+
+**Alternativas.** Coletar uma vez por dia, com o último preço até 24 horas desatualizado. Guardar todos os preços e agregar por dia na leitura, no MarketData ou no BFF, o que exigiria mudar o contrato da API. Proteger só a Function, mantendo o histórico misturado.
+
+**Justificativa.** O problema estava nos dados: um preço por dia na origem mantém o histórico regular, que a previsão e o gráfico supõem, sem mudar nenhum contrato. As proteções na Function cobrem séries irregulares que ainda podem chegar pelo CRUD manual de preços. Os valores foram escolhidos testando a série real da nuvem e recortes de 14 a 90 pontos; com eles, nenhuma previsão de 30 dias variou mais de 10%.
+
+**Consequências.** Altera o ADR-039: a técnica é a mesma, com a série regularizada e as duas proteções. O histórico perde os preços intermediários de cada dia. A previsão continua simples: segue a variação média recente e não antecipa mudanças bruscas.
+
+## ADR-054 — Identity e BFF com uma réplica ativa e tempo limite maior no BFF da nuvem
+
+**Contexto.** Ao validar a correção da previsão, o primeiro login depois de cerca de 20 minutos sem uso devolveu 502. Pelos logs, o Identity, que escalava a zero, levou quase um minuto para iniciar; o BFF desistiu depois de 20 segundos, o tempo limite padrão das chamadas aos serviços. Com o serviço já ativo, o login leva de 1,5 a 2 segundos. Com o Identity ativo, um novo teste depois de 15 minutos sem uso levou 47 segundos: o BFF, que também escalava a zero, levou 44 segundos para iniciar o contêiner (a aplicação em si inicia em menos de um segundo). O frontend, com uma imagem bem menor, voltou em 5 segundos.
+
+**Decisão.** Na nuvem, Identity e BFF mantêm uma réplica ativa, como o Catalog e o MarketData. O BFF passa a esperar até 60 segundos pelos serviços (`UPSTREAM_TIMEOUT_MS=60000`), o que cobre a partida a frio da Function e do frontend. O padrão de 20 segundos continua no ambiente local.
+
+**Alternativas.** Só aumentar o tempo limite, mantendo os dois escalando a zero: BFF e Identity iniciariam um depois do outro, e o primeiro login passaria do tempo limite ou esperaria perto de um minuto. Manter também o frontend ativo.
+
+**Justificativa.** O login é a primeira ação de quem avalia ou assiste à demonstração. Uma réplica de 0,25 vCPU e 0,5 GiB parada custa cerca de US$ 6 por mês, pouco em relação ao crédito da assinatura. O frontend volta em poucos segundos e continua escalando a zero.
+
+**Consequências.** Altera o ADR-051, em que só Catalog e MarketData ficavam ativos. O custo fixo sobe duas réplicas. Uma chamada a um serviço fora do ar demora até 60 segundos para virar erro.

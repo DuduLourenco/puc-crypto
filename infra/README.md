@@ -42,7 +42,7 @@ O SDK do .NET 8 é necessário para publicar o código da Function.
 
 ## Custos
 
-Catalog e MarketData ficam com uma réplica sempre ativa (0,25 vCPU e 0,5 GiB), para consumir os eventos do RabbitMQ; os demais apps e a Function escalam para zero. Os bancos do Azure SQL, o API Management, o Atlas e o CloudAMQP estão em planos gratuitos. Para apagar tudo depois da avaliação:
+Catalog e MarketData ficam com uma réplica sempre ativa (0,25 vCPU e 0,5 GiB), para consumir os eventos do RabbitMQ, e Identity e BFF também, porque partindo do zero cada um levava de 45 s a 1 min para responder ao login (ADR-054); o frontend e a Function escalam para zero. Cada réplica ativa custa cerca de US$ 6 por mês do crédito. Os bancos do Azure SQL, o API Management, o Atlas e o CloudAMQP estão em planos gratuitos. Para apagar tudo depois da avaliação:
 
 ```bash
 az group delete -n <grupo de recursos>
