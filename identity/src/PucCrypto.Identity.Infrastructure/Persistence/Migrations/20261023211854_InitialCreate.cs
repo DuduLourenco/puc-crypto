@@ -15,11 +15,11 @@ namespace PucCrypto.Identity.Infrastructure.Persistence.Migrations
                 name: "users",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "uuid", nullable: false),
-                    name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    email = table.Column<string>(type: "character varying(254)", maxLength: 254, nullable: false),
-                    password_hash = table.Column<string>(type: "text", nullable: false),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    email = table.Column<string>(type: "nvarchar(254)", maxLength: 254, nullable: false),
+                    password_hash = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    created_at = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {

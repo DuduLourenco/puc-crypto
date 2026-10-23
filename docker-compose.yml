@@ -6,23 +6,7 @@ name: puccrypto
 
 services:
   # ---------- Infraestrutura ----------
-  postgres:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_DB: identity_db
-      POSTGRES_USER: identity_user
-      POSTGRES_PASSWORD: ${IDENTITY_DB_PASSWORD}
-    ports:
-      - "127.0.0.1:5440:5432"
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U identity_user -d identity_db"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
-
-  # Equivalente local do Azure SQL Database. A imagem é x64 e roda por emulação em Macs ARM.
+  # Equivalente local do Azure SQL Database (bancos identity_db e catalog_db). A imagem é x64 e roda por emulação em Macs ARM.
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
     platform: linux/amd64
@@ -78,12 +62,12 @@ services:
   identity-api:
     build: ./identity
     environment:
-      ConnectionStrings__Database: Host=postgres;Port=5432;Database=identity_db;Username=identity_user;Password=${IDENTITY_DB_PASSWORD}
+      ConnectionStrings__Database: Server=sqlserver,1433;Database=identity_db;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True
       Jwt__SigningKey: ${JWT_SIGNING_KEY}
     ports:
       - "127.0.0.1:5101:8080"
     depends_on:
-      postgres:
+      sqlserver:
         condition: service_healthy
 
   catalog-api:
@@ -169,6 +153,5 @@ services:
       - bff
 
 volumes:
-  postgres-data:
   sqlserver-data:
   mongo-data:

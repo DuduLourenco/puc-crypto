@@ -25,14 +25,14 @@ Conta de demonstração: `demo@puccrypto.dev`, senha `PucCrypto-demo-996f85`, co
 |---|---|---|---|
 | Frontend (shell e microfrontends, nginx) | Azure Container Apps | canadacentral | 0 a 2 réplicas |
 | BFF | Azure Container Apps | canadacentral | 0 a 2 |
-| Identity | Azure Container Apps + Azure Database for PostgreSQL B1ms | canadacentral | 0 a 2 |
-| Catalog | Azure Container Apps + Azure SQL Database (oferta gratuita, serverless) | canadacentral | 1 a 2 (consome eventos) |
+| Identity | Azure Container Apps + Azure SQL Database (`identity_db`, oferta gratuita, serverless) | canadacentral | 0 a 2 |
+| Catalog | Azure Container Apps + Azure SQL Database (`catalog_db`, oferta gratuita, serverless) | canadacentral | 1 a 2 (consome eventos) |
 | MarketData | Azure Container Apps + MongoDB Atlas (M0) | canadacentral + Atlas | 1 a 2 (consome eventos) |
 | Function `GetForecast` e coleta agendada | Azure Functions, plano Flex Consumption | canadacentral | Escala a zero |
 | API Gateway | Azure API Management, plano Consumption | eastus2 | Gerenciado |
 | Broker | RabbitMQ no CloudAMQP (plano gratuito) | Fora do Azure | Gerenciado |
 
-Todos os recursos do Azure estão no grupo `rg-puccrypto`. Cada Container App usa 0,25 vCPU e 0,5 GiB.
+Todos os recursos do Azure estão no grupo `rg-puccrypto`. Cada Container App usa 0,25 vCPU e 0,5 GiB. Os dois bancos do Azure SQL ficam no mesmo servidor, `sql-puccrypto-f43a29-canadacentral`, e cada um é usado por um único serviço.
 
 Fluxo na nuvem: navegador → API Gateway (`/api/*`) → BFF → Identity, Catalog, MarketData e a Function. O CORS do BFF aceita apenas a origem do frontend. O BFF chama a Function com a chave da Function.
 
@@ -61,6 +61,7 @@ Os eventos não mudaram: `CryptoRegistered` e `CryptoRemoved` (Catalog → Marke
 |---|---|
 | O Docker Hub recusou o formato do enunciado, `lourencodu/puccrypto/identity` ("push access denied … insufficient_scope") | Nome com hífen, `lourencodu/puccrypto-identity` (ADR-050) |
 | Na assinatura Azure for Students, eastus2 e eastus não aceitam novos servidores de Azure SQL nem de PostgreSQL | Serviços e bancos em canadacentral, região permitida que aceita os dois e tem Container Apps e Flex Consumption (ADR-051) |
+| O PostgreSQL B1ms do Identity era o maior custo fixo | Identity movido para um segundo banco gratuito do Azure SQL; o PostgreSQL foi apagado (seção 7 e ADR-052) |
 | A tentativa de criar o SQL em eastus deixou o nome do servidor reservado naquela região | A região passou a fazer parte do nome dos servidores de banco |
 | O ambiente do Container Apps foi criado na modalidade "express", que não aceita sufixo de revisão | Variável `DEPLOYED_AT` com a data do deploy, que também cria uma revisão nova |
 | Mesmo com a imagem nova no Docker Hub, o Container App continuou servindo a versão anterior da tag `v1` | O deploy fixa a imagem pelo digest (`@sha256:…`) |
@@ -83,14 +84,30 @@ Os eventos não mudaram: `CryptoRegistered` e `CryptoRemoved` (Catalog → Marke
 - Na nuvem, a CoinGecko real foi alcançada; a chamada que estava bloqueada pelo DNS da rede de desenvolvimento (fase 5) foi validada aqui.
 - Os usuários de teste foram removidos do banco da nuvem; ficou apenas a conta de demonstração.
 
-## 7. Custos e encerramento
+## 7. Identity no Azure SQL
 
-O maior custo fixo é o PostgreSQL B1ms. Catalog e MarketData mantêm uma réplica ativa; os demais apps e a Function escalam a zero; Azure SQL, API Management (Consumption), Atlas M0 e CloudAMQP estão em planos gratuitos. Tudo é cobrado do crédito da assinatura de estudante. Para apagar os recursos depois da avaliação: `az group delete -n rg-puccrypto`.
+Na primeira publicação, o Identity usava um Azure Database for PostgreSQL B1ms, o maior custo fixo do projeto. Como o enunciado não exige PostgreSQL, o Identity passou para um segundo banco gratuito do Azure SQL, `identity_db`, no servidor do Catalog (ADR-052):
 
-## 8. Limitações e pendências
+| Arquivo | Mudança |
+|---|---|
+| `identity/Directory.Packages.props`, `PucCrypto.Identity.Infrastructure.csproj` | Npgsql trocado por `Microsoft.EntityFrameworkCore.SqlServer` |
+| `Infrastructure/DependencyInjection.cs` | `UseSqlServer` com retentativa, para o banco que sai da pausa automática |
+| `Persistence/Configurations/UtcDateTimeConverter.cs`, `UserConfiguration.cs` | `CreatedAt` gravado e lido em UTC, como no Catalog |
+| `Persistence/Migrations/` | `InitialCreate` gerada de novo para o SQL Server |
+| `docker-compose.yml` (raiz e do Identity), `appsettings.Development.json`, `.env.example` | Identity no contêiner do SQL Server; o PostgreSQL saiu do ambiente local |
+| `infra/azure/deploy.sh` | Cria `catalog_db` e `identity_db` na oferta gratuita; o PostgreSQL saiu do script |
+
+Verificação: testes unitários e de arquitetura do Identity aprovados; no Compose, cadastro, login e o fluxo pelo BFF funcionaram; na nuvem, o Identity responde 200 e as tabelas foram criadas pela migration. A conta de demonstração foi copiada com o mesmo id, de modo que a lista dela no Catalog continuou válida: login pelo Gateway e `/aggregated-data` com Bitcoin, Ethereum e Solana, histórico e previsão. Em seguida, o servidor PostgreSQL foi apagado.
+
+## 8. Custos e encerramento
+
+Catalog e MarketData mantêm uma réplica ativa, o principal custo; os demais apps e a Function escalam a zero; Azure SQL (dois bancos), API Management (Consumption), Atlas M0 e CloudAMQP estão em planos gratuitos. Tudo é cobrado do crédito da assinatura de estudante. Para apagar os recursos depois da avaliação: `az group delete -n rg-puccrypto`.
+
+## 9. Limitações e pendências
 
 - A senha da conta de demonstração está na documentação, de propósito, para a apresentação.
 - A primeira chamada depois de um período sem uso é mais lenta: os apps que escalam a zero, a Function e o Azure SQL serverless precisam iniciar.
 - Os prints do Portal Azure exigem o login do grupo; o passo a passo está em [docs/entrega-deploy](../entrega-deploy/README.md).
 - A chave de assinatura do JWT é compartilhada entre Identity, BFF e microsserviços (ADR-017).
 - Fase 10: checklist de insumos para a documentação (URLs, prints e vídeo).
+- Identity e Catalog dividem a cota gratuita do Azure SQL; se ela acabar no mês, os dois bancos pausam até o mês seguinte.

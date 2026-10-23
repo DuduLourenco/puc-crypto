@@ -13,8 +13,11 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
+        // As retentativas cobrem falhas transitórias, como o Azure SQL saindo da pausa automática.
         services.AddDbContext<IdentityDbContext>(options =>
-            options.UseNpgsql(configuration.GetConnectionString("Database")));
+            options.UseSqlServer(
+                configuration.GetConnectionString("Database"),
+                sqlServer => sqlServer.EnableRetryOnFailure()));
 
         services.AddScoped<IUserRepository, UserRepository>();
 

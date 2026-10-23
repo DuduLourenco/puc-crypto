@@ -11,7 +11,7 @@ O PucCrypto é uma aplicação distribuída. O microfrontend chama apenas este B
 | Catalog (Azure SQL) | Microsserviço SQL | Catálogo de criptomoedas e lista do usuário |
 | MarketData (MongoDB) | Microsserviço MongoDB | Histórico de preços |
 | Forecast Function | Azure Function (HTTP) | Previsão a partir do histórico |
-| Identity (PostgreSQL) | Acréscimo do grupo | Cadastro e login |
+| Identity (Azure SQL) | Acréscimo do grupo | Cadastro e login |
 
 ### `GET /aggregated-data`
 

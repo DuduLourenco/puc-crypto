@@ -12,7 +12,7 @@ Este serviço segue Clean Architecture, com um projeto por camada e dependência
 |---|---|---|
 | Domain | `src/PucCrypto.Identity.Domain` | Entidade `User`. Não depende de nada |
 | Application | `src/PucCrypto.Identity.Application` | Casos de uso em `Features/` e portas em `Abstractions/` |
-| Infrastructure | `src/PucCrypto.Identity.Infrastructure` | EF Core com PostgreSQL, BCrypt, emissão do JWT |
+| Infrastructure | `src/PucCrypto.Identity.Infrastructure` | EF Core com SQL Server / Azure SQL, BCrypt, emissão do JWT |
 | API | `src/PucCrypto.Identity.Api` | Raiz de composição, Swagger |
 
 Os casos de uso são organizados em Vertical Slices. Cada pasta de `Application/Features` reúne o endpoint, o command, o validador e o handler de um caso de uso:
@@ -27,7 +27,7 @@ Os casos de uso são organizados em Vertical Slices. Cada pasta de `Application/
 ## Tecnologias
 
 - .NET 8, ASP.NET Core (Minimal APIs)
-- Entity Framework Core com PostgreSQL
+- Entity Framework Core com SQL Server / Azure SQL Database
 - FluentValidation, BCrypt.Net, JWT (HS256)
 - Swagger (Swashbuckle)
 - xUnit e ArchUnitNET (testes de arquitetura)
@@ -56,10 +56,10 @@ curl -X POST http://localhost:5101/auth/login \
   -d '{"email":"ana@example.com","password":"senha-segura-1"}'
 ```
 
-Para rodar a API fora do Docker, com o PostgreSQL do Compose no ar:
+Para rodar a API fora do Docker, com o SQL Server do Compose no ar (em Macs ARM, a imagem roda por emulação):
 
 ```bash
-docker compose up -d postgres
+docker compose up -d sqlserver
 dotnet run --project src/PucCrypto.Identity.Api
 ```
 
@@ -67,7 +67,7 @@ dotnet run --project src/PucCrypto.Identity.Api
 
 | Chave | Descrição |
 |---|---|
-| `ConnectionStrings__Database` | Connection string do PostgreSQL |
+| `ConnectionStrings__Database` | Connection string do SQL Server / Azure SQL |
 | `Jwt__SigningKey` | Chave de assinatura do JWT, com pelo menos 32 bytes |
 | `Jwt__Issuer`, `Jwt__Audience`, `Jwt__ExpirationMinutes` | Emissor, audiência e validade do token |
 

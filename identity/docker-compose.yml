@@ -1,34 +1,36 @@
 name: puccrypto-identity
 
-# Sobe o Identity e o seu banco. Valores apenas para desenvolvimento local.
+# Sobe o Identity e o seu banco (SQL Server, equivalente local do Azure SQL).
+# Valores apenas para desenvolvimento local.
 
 services:
-  postgres:
-    image: postgres:16-alpine
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    platform: linux/amd64
     environment:
-      POSTGRES_DB: identity_db
-      POSTGRES_USER: identity_user
-      POSTGRES_PASSWORD: identity_dev
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: PucCrypto_dev_123
     ports:
-      - "127.0.0.1:5440:5432"
+      - "127.0.0.1:1440:1433"
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - sqlserver-data:/var/opt/mssql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U identity_user -d identity_db"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P PucCrypto_dev_123 -C -Q 'SELECT 1' -b -o /dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 20s
 
   identity-api:
     build: .
     environment:
-      ConnectionStrings__Database: Host=postgres;Port=5432;Database=identity_db;Username=identity_user;Password=identity_dev
+      ConnectionStrings__Database: Server=sqlserver,1433;Database=identity_db;User Id=sa;Password=PucCrypto_dev_123;TrustServerCertificate=True
       Jwt__SigningKey: puccrypto-dev-only-signing-key-0123456789abcdef
     ports:
       - "127.0.0.1:5101:8080"
     depends_on:
-      postgres:
+      sqlserver:
         condition: service_healthy
 
 volumes:
-  postgres-data:
+  sqlserver-data:

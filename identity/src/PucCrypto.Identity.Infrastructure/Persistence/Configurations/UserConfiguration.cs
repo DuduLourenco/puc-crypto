@@ -16,7 +16,8 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(user => user.Name).HasColumnName("name").HasMaxLength(User.NameMaxLength);
         builder.Property(user => user.Email).HasColumnName("email").HasMaxLength(User.EmailMaxLength);
         builder.Property(user => user.PasswordHash).HasColumnName("password_hash");
-        builder.Property(user => user.CreatedAt).HasColumnName("created_at");
+        builder.Property(user => user.CreatedAt).HasColumnName("created_at")
+            .HasConversion(UtcDateTimeConverter.Instance);
 
         builder.HasIndex(user => user.Email).IsUnique();
     }

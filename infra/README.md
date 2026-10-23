@@ -14,8 +14,8 @@ Imagens no Docker Hub e sistema completo no Azure, com dois scripts:
 | Frontend (shell e microfrontends) | Azure Container Apps (nginx) |
 | API Gateway | Azure API Management (Consumption), prefixo `/api`, encaminha tudo ao BFF |
 | BFF | Azure Container Apps |
-| Identity | Azure Container Apps + Azure Database for PostgreSQL (B1ms) |
-| Catalog | Azure Container Apps + Azure SQL Database (oferta gratuita) |
+| Identity | Azure Container Apps + Azure SQL Database (oferta gratuita, banco `identity_db`) |
+| Catalog | Azure Container Apps + Azure SQL Database (oferta gratuita, banco `catalog_db`) |
 | MarketData | Azure Container Apps + MongoDB Atlas (M0) |
 | Forecast (Azure Functions) | Function App no plano Flex Consumption (serverless) + Storage Account |
 | Eventos | RabbitMQ gerenciado no CloudAMQP (plano gratuito) |
@@ -42,7 +42,7 @@ O SDK do .NET 8 é necessário para publicar o código da Function.
 
 ## Custos
 
-Catalog e MarketData ficam com uma réplica sempre ativa (0,25 vCPU e 0,5 GiB), para consumir os eventos do RabbitMQ; os demais apps e a Function escalam para zero. O PostgreSQL B1ms é o maior custo fixo. Para apagar tudo depois da avaliação:
+Catalog e MarketData ficam com uma réplica sempre ativa (0,25 vCPU e 0,5 GiB), para consumir os eventos do RabbitMQ; os demais apps e a Function escalam para zero. Os bancos do Azure SQL, o API Management, o Atlas e o CloudAMQP estão em planos gratuitos. Para apagar tudo depois da avaliação:
 
 ```bash
 az group delete -n <grupo de recursos>

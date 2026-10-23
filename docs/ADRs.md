@@ -32,7 +32,7 @@ As decisões 025 a 032 decorrem do enunciado final do PJBL ([enunciado-pjbl.md](
 | 024 | Código comum a várias slices em `Application/Common` | 4 | Aceita |
 | 025 | Repositórios separados, com este repositório como área de trabalho | 3R | Alterada pelo ADR-049 |
 | 026 | Código compartilhado copiado em cada repositório | 3R | Aceita |
-| 027 | Um tipo de banco por serviço | 3R | Aceita |
+| 027 | Um tipo de banco por serviço | 3R | Alterada pelo ADR-052 |
 | 028 | Gateway gerenciado na nuvem, apenas na frente do BFF | 3R | Aceita |
 | 029 | Previsão como Azure Function HTTP, sem banco | 3R | Aceita |
 | 030 | RabbitMQ gerenciado como broker da nuvem | 3R | Aceita |
@@ -56,7 +56,8 @@ As decisões 025 a 032 decorrem do enunciado final do PJBL ([enunciado-pjbl.md](
 | 048 | ArchUnitNET e ArchUnitTS nos testes de arquitetura do backend | 9 | Aceita |
 | 049 | Repositório único, sem exportação para repositórios separados | 9 | Aceita |
 | 050 | Imagens no Docker Hub como `<usuário>/puccrypto-<serviço>` | 9 | Aceita |
-| 051 | Publicação no Azure Container Apps, Functions Flex Consumption e API Management | 9 | Aceita |
+| 051 | Publicação no Azure Container Apps, Functions Flex Consumption e API Management | 9 | Alterada pelo ADR-052 |
+| 052 | Identity em um segundo banco gratuito do Azure SQL | 9 | Aceita |
 
 ---
 
@@ -668,7 +669,7 @@ As decisões 025 a 032 decorrem do enunciado final do PJBL ([enunciado-pjbl.md](
 - **Contêineres:** frontend, BFF, Identity, Catalog e MarketData rodam no Azure Container Apps, a partir das imagens públicas do Docker Hub, fixadas pelo digest. Catalog e MarketData mantêm uma réplica ativa, porque consomem eventos; os demais escalam a zero.
 - **Function:** a previsão e a coleta agendada rodam em um Function App no plano Flex Consumption, publicado como código.
 - **Gateway:** o API Management (Consumption) encaminha `/api/*` ao BFF.
-- **Bancos:** Azure SQL Database na oferta gratuita (Catalog), Azure Database for PostgreSQL B1ms (Identity) e MongoDB Atlas M0 (MarketData).
+- **Bancos:** Azure SQL Database na oferta gratuita (Catalog), Azure Database for PostgreSQL B1ms (Identity) e MongoDB Atlas M0 (MarketData). O ADR-052 levou o Identity para o Azure SQL.
 - **Broker:** CloudAMQP no plano gratuito.
 - **Região:** os recursos ficam em canadacentral; o API Management, criado antes da mudança, fica em eastus2.
 - **Execução:** tudo é provisionado pelo script `infra/azure/deploy.sh`.
@@ -683,3 +684,15 @@ As decisões 025 a 032 decorrem do enunciado final do PJBL ([enunciado-pjbl.md](
 - **Digest:** com a tag sozinha, o Container App continuou servindo uma versão anterior da imagem.
 
 **Consequências.** Há uma passagem entre regiões (eastus2 → canadacentral) no API Gateway. O PostgreSQL B1ms é o principal custo fixo. A primeira chamada depois de um período sem uso é mais lenta. Os segredos gerados ficam no `.env.cloud.secrets`, fora do Git, e nos segredos dos Container Apps.
+
+## ADR-052 — Identity em um segundo banco gratuito do Azure SQL
+
+**Contexto.** Depois da publicação, o PostgreSQL B1ms do Identity era o maior custo fixo do projeto, cobrado do crédito da assinatura de estudante. O enunciado exige MongoDB Atlas e Azure SQL, mas não exige PostgreSQL; o Identity é um acréscimo do grupo. A oferta gratuita do Azure SQL admite até dez bancos por assinatura.
+
+**Decisão.** O Identity passa a usar o banco `identity_db`, no mesmo servidor do Azure SQL do Catalog, também na oferta gratuita (serverless, pausa automática ao fim da cota). O EF Core usa o provedor do SQL Server, com retentativa e datas em UTC, como no Catalog (ADR-034); as migrations foram geradas de novo. No ambiente local, o Identity usa o mesmo contêiner do SQL Server, com o seu próprio banco. O servidor PostgreSQL da nuvem foi apagado, depois de copiar a conta de demonstração com o mesmo id.
+
+**Alternativas.** Manter o PostgreSQL B1ms. PostgreSQL em um contêiner no Container Apps, sem armazenamento durável. Identity no MongoDB Atlas.
+
+**Justificativa.** Elimina o principal custo fixo sem mudar Domain, Application nem API do Identity: a troca fica restrita à Infrastructure. O banco continua exclusivo do Identity: os dois bancos compartilham só o servidor, sem acesso de um serviço ao banco do outro. O Azure SQL já fazia parte da arquitetura, então não entra nova tecnologia.
+
+**Consequências.** Altera o ADR-027, em que o Identity mantinha o PostgreSQL, e o ADR-051. O PostgreSQL sai da arquitetura; o ambiente local passa a ter dois tipos de banco (SQL Server e MongoDB). Identity e Catalog dividem o servidor e a cota gratuita: se a cota mensal acabar, os dois bancos pausam até o mês seguinte. O primeiro login depois de um período sem uso é mais lento, enquanto o banco sai da pausa.

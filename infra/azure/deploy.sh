@@ -7,8 +7,7 @@
 # Recursos (todos no grupo AZURE_RESOURCE_GROUP):
 #   Azure Container Apps   identity, catalog, marketdata, bff, frontend (imagens do Docker Hub)
 #   Azure Functions        Function App no plano Flex Consumption (GetForecast e coleta agendada)
-#   Azure SQL Database     catalog_db, na oferta gratuita (Catalog)
-#   PostgreSQL Flexible    identity_db, B1ms (Identity)
+#   Azure SQL Database     catalog_db (Catalog) e identity_db (Identity), na oferta gratuita
 #   Storage Account        exigido pelo Azure Functions
 #   API Management         Gateway (Consumption), na frente do BFF
 # Fora do Azure: MongoDB Atlas (MarketData) e CloudAMQP (RabbitMQ), informados no .env.cloud.
@@ -46,9 +45,8 @@ ensure_secret() {
 }
 ensure_secret SUFFIX "$(random_hex 3)"
 ensure_secret JWT_SIGNING_KEY "$(random_hex 32)"
-# Senhas com maiúsculas, minúsculas, números e símbolo, como exigem o Azure SQL e o PostgreSQL.
+# Senha com maiúsculas, minúsculas, números e símbolo, como exige o Azure SQL.
 ensure_secret SQL_ADMIN_PASSWORD "Pc1-$(random_hex 12)"
-ensure_secret PG_ADMIN_PASSWORD "Pg1-$(random_hex 12)"
 ensure_secret COLLECTOR_API_KEY "$(random_hex 24)"
 ensure_secret FORECAST_FUNCTION_KEY "$(random_hex 24)"
 
@@ -58,10 +56,9 @@ location="$AZURE_LOCATION"
 tag="${IMAGE_TAG:-v1}"
 admin_user="puccryptoadmin"
 env_name="cae-puccrypto"
-# A região entra no nome dos servidores de banco: uma tentativa que falha deixa o nome reservado
+# A região entra no nome do servidor de banco: uma tentativa que falha deixa o nome reservado
 # naquela região, e outra região exige outro nome.
 sql_server="sql-puccrypto-$SUFFIX-$location"
-pg_server="psql-puccrypto-$SUFFIX-$location"
 storage="stpuccrypto$SUFFIX"
 function_app="func-puccrypto-$SUFFIX"
 apim="apim-puccrypto-$SUFFIX"
@@ -74,7 +71,7 @@ exists() { "$@" -o none &>/dev/null; }
 step "Assinatura: $(az account show --query name -o tsv)"
 az extension add --name containerapp --upgrade --yes --only-show-errors
 for provider in Microsoft.App Microsoft.OperationalInsights Microsoft.Web Microsoft.Sql \
-  Microsoft.DBforPostgreSQL Microsoft.Storage Microsoft.ApiManagement; do
+  Microsoft.Storage Microsoft.ApiManagement; do
   az provider register --namespace "$provider" --wait -o none
 done
 
@@ -91,7 +88,7 @@ if ! exists az apim show -g "$rg" -n "$apim"; then
 fi
 
 # ---------- Bancos ----------
-step "Azure SQL $sql_server / catalog_db (oferta gratuita)"
+step "Azure SQL $sql_server: catalog_db e identity_db (oferta gratuita)"
 if ! exists az sql server show -g "$rg" -n "$sql_server"; then
   az sql server create -g "$rg" -n "$sql_server" -l "$location" \
     --admin-user "$admin_user" --admin-password "$SQL_ADMIN_PASSWORD" -o none
@@ -99,25 +96,20 @@ fi
 # 0.0.0.0 libera o acesso a partir de serviços do Azure, como o Container Apps.
 az sql server firewall-rule create -g "$rg" -s "$sql_server" -n AllowAzureServices \
   --start-ip-address 0.0.0.0 --end-ip-address 0.0.0.0 -o none
-if ! exists az sql db show -g "$rg" -s "$sql_server" -n catalog_db; then
-  az sql db create -g "$rg" -s "$sql_server" -n catalog_db \
-    --edition GeneralPurpose --family Gen5 --capacity 2 --compute-model Serverless \
-    --use-free-limit --free-limit-exhaustion-behavior AutoPause \
-    --backup-storage-redundancy Local -o none
-fi
-catalog_db="Server=tcp:$sql_server.database.windows.net,1433;Database=catalog_db;User ID=$admin_user;Password=$SQL_ADMIN_PASSWORD;Encrypt=True;TrustServerCertificate=False;Connection Timeout=60;"
-
-step "PostgreSQL $pg_server / identity_db"
-if ! exists az postgres flexible-server show -g "$rg" -n "$pg_server"; then
-  az postgres flexible-server create -g "$rg" -n "$pg_server" -l "$location" \
-    --tier Burstable --sku-name Standard_B1ms --storage-size 32 --version 16 \
-    --admin-user "$admin_user" --admin-password "$PG_ADMIN_PASSWORD" \
-    --public-access 0.0.0.0 --yes -o none
-fi
-if ! exists az postgres flexible-server db show -g "$rg" --server-name "$pg_server" --name identity_db; then
-  az postgres flexible-server db create -g "$rg" --server-name "$pg_server" --name identity_db -o none
-fi
-identity_db="Host=$pg_server.postgres.database.azure.com;Port=5432;Database=identity_db;Username=$admin_user;Password=$PG_ADMIN_PASSWORD;SSL Mode=Require"
+# Um banco por serviço, no mesmo servidor; a oferta gratuita vale para até 10 bancos por assinatura.
+for database in catalog_db identity_db; do
+  if ! exists az sql db show -g "$rg" -s "$sql_server" -n "$database"; then
+    az sql db create -g "$rg" -s "$sql_server" -n "$database" \
+      --edition GeneralPurpose --family Gen5 --capacity 2 --compute-model Serverless \
+      --use-free-limit --free-limit-exhaustion-behavior AutoPause \
+      --backup-storage-redundancy Local -o none
+  fi
+done
+sql_connection() {
+  echo "Server=tcp:$sql_server.database.windows.net,1433;Database=$1;User ID=$admin_user;Password=$SQL_ADMIN_PASSWORD;Encrypt=True;TrustServerCertificate=False;Connection Timeout=60;"
+}
+catalog_db="$(sql_connection catalog_db)"
+identity_db="$(sql_connection identity_db)"
 
 # ---------- Container Apps ----------
 step "Ambiente do Container Apps $env_name"

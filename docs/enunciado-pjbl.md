@@ -129,4 +129,4 @@ Outros artefatos obrigatórios:
 | Microserviço 2 (Azure SQL) | Catalog (`catalog/`) |
 | Azure Function | `GetForecast` (`forecast-function/`) |
 | API Gateway | Gateway gerenciado na nuvem, na frente do BFF |
-| — (acréscimo do grupo) | Identity, com PostgreSQL (`identity/`) |
+| — (acréscimo do grupo) | Identity, com Azure SQL (`identity/`) |
