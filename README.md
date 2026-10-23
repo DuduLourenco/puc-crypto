@@ -8,7 +8,7 @@ Todo o projeto fica neste repositório, com uma pasta autossuficiente por compon
 
 | Pasta | Componente | Tecnologia | Papel no enunciado | Estado |
 |---|---|---|---|---|
-| [identity/](identity/) | Identity | .NET 8, PostgreSQL | Acréscimo do grupo (login com JWT) | Publicado |
+| [identity/](identity/) | Identity | .NET 8, Azure SQL | Acréscimo do grupo (login com JWT) | Publicado |
 | [catalog/](catalog/) | Catalog | .NET 8, Azure SQL | Microsserviço 2 (SQL) | Publicado |
 | [marketdata/](marketdata/) | MarketData | .NET 8, MongoDB Atlas | Microsserviço 1 (MongoDB) | Publicado |
 | [forecast-function/](forecast-function/) | GetForecast | Azure Functions, ML.NET | Azure Function | Publicado |
@@ -37,7 +37,7 @@ O API Gateway é um serviço gerenciado na nuvem, na frente do BFF.
 | Azure Function | https://func-puccrypto-f43a29.azurewebsites.net/api/health |
 | Imagens no Docker Hub | https://hub.docker.com/u/lourencodu |
 
-Conta de demonstração: `demo@puccrypto.dev`, senha `PucCrypto-demo-996f85`. Evidências e prints da publicação: [docs/entrega-deploy](docs/entrega-deploy/README.md). Deploy: [infra/](infra/).
+Conta de demonstração: `demo@puccrypto.dev`, senha `PucCrypto-demo-996f85`. Evidências e prints da publicação: [docs/entrega-deploy](docs/entrega-deploy/README.md). Deploy: [infra/](infra/). Checklist da entrega final: [docs/checklist-entrega.md](docs/checklist-entrega.md).
 
 ## Como executar
 
@@ -63,7 +63,7 @@ Cada pasta tem a sua própria solução e os seus testes: `cd identity && dotnet
 - [Enunciado do PJBL](docs/enunciado-pjbl.md)
 - [Análise de impacto do enunciado final](docs/analise-impacto-pjbl.md)
 - [Decisões de arquitetura (ADRs)](docs/ADRs.md)
-- Inventário por fase: [1](docs/fases/fase-01.md), [2](docs/fases/fase-02.md), [3](docs/fases/fase-03.md), [4](docs/fases/fase-04.md), [3R](docs/fases/fase-03R.md), [4R](docs/fases/fase-04R.md), [5](docs/fases/fase-05.md), [6](docs/fases/fase-06.md), [7](docs/fases/fase-07.md), [8](docs/fases/fase-08.md), [9](docs/fases/fase-09.md)
+- Inventário por fase: [1](docs/fases/fase-01.md), [2](docs/fases/fase-02.md), [3](docs/fases/fase-03.md), [4](docs/fases/fase-04.md), [3R](docs/fases/fase-03R.md), [4R](docs/fases/fase-04R.md), [5](docs/fases/fase-05.md), [6](docs/fases/fase-06.md), [7](docs/fases/fase-07.md), [8](docs/fases/fase-08.md), [9](docs/fases/fase-09.md), [10](docs/fases/fase-10.md)
 
 As fases 1 a 4 descrevem a arquitetura anterior ao enunciado final. A fase 3R registra a reorganização e a 4R, o Catalog revisado.
 
