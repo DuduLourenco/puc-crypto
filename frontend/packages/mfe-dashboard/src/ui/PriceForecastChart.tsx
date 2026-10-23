@@ -43,7 +43,7 @@ export function PriceForecastChart({ rows, label }: Props) {
 
       <div className="dash-chart" role="img" aria-label={label}>
         <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={rows} margin={{ top: 8, right: 84, bottom: 0, left: 0 }}>
+          <ComposedChart data={rows} margin={{ top: 8, right: 108, bottom: 0, left: 0 }}>
             <CartesianGrid vertical={false} stroke="var(--pc-grid)" />
             <XAxis
               dataKey="time"

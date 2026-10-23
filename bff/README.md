@@ -148,16 +148,16 @@ npm run test:arch   # Jest com ArchUnitTS
 ## Imagem Docker
 
 ```bash
-docker build -t <usuario>/puccrypto/bff:v1 .
+docker build -t <usuario>/puccrypto-bff:v1 .
 ```
 
 ## URLs na nuvem
 
 | Recurso | URL |
 |---|---|
-| BFF pelo API Gateway | _a preencher após o deploy_ |
-| Swagger | _a preencher após o deploy_ |
-| Imagem no Docker Hub | _a preencher após a publicação_ |
+| BFF pelo API Gateway | https://apim-puccrypto-f43a29.azure-api.net/api |
+| Swagger | https://puccrypto-bff.delightfulcoast-0aa4a01d.canadacentral.azurecontainerapps.io/swagger |
+| Imagem no Docker Hub | https://hub.docker.com/r/lourencodu/puccrypto-bff (`lourencodu/puccrypto-bff:v1`) |
 
 ## Alunos
 

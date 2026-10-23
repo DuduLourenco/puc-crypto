@@ -30,7 +30,7 @@ As decisões 025 a 032 decorrem do enunciado final do PJBL ([enunciado-pjbl.md](
 | 022 | Evento publicado após a gravação, sem outbox | 4 | Aceita |
 | 023 | Topologia de eventos: uma exchange topic e nome do evento como chave | 4 | Alterada pelo ADR-030 |
 | 024 | Código comum a várias slices em `Application/Common` | 4 | Aceita |
-| 025 | Repositórios separados, com este repositório como área de trabalho | 3R | Aceita |
+| 025 | Repositórios separados, com este repositório como área de trabalho | 3R | Alterada pelo ADR-049 |
 | 026 | Código compartilhado copiado em cada repositório | 3R | Aceita |
 | 027 | Um tipo de banco por serviço | 3R | Aceita |
 | 028 | Gateway gerenciado na nuvem, apenas na frente do BFF | 3R | Aceita |
@@ -54,6 +54,9 @@ As decisões 025 a 032 decorrem do enunciado final do PJBL ([enunciado-pjbl.md](
 | 046 | Camadas e slices também no frontend | 8 | Aceita |
 | 047 | Gráfico de linha único para histórico e previsão | 8 | Aceita |
 | 048 | ArchUnitNET e ArchUnitTS nos testes de arquitetura do backend | 9 | Aceita |
+| 049 | Repositório único, sem exportação para repositórios separados | 9 | Aceita |
+| 050 | Imagens no Docker Hub como `<usuário>/puccrypto-<serviço>` | 9 | Aceita |
+| 051 | Publicação no Azure Container Apps, Functions Flex Consumption e API Management | 9 | Aceita |
 
 ---
 
@@ -632,3 +635,51 @@ As decisões 025 a 032 decorrem do enunciado final do PJBL ([enunciado-pjbl.md](
 **Justificativa.** Seguir as bibliotecas pedidas pela tarefa. Ter duas ferramentas verificando as mesmas regras só duplicaria a manutenção.
 
 **Consequências.** Altera os ADR-031 e ADR-042. O ArchUnitNET só conhece tipos referenciados pelos assemblies carregados, então os testes carregam também os assemblies dos contratos (`BuildingBlocks.Abstractions` e FluentValidation). No BFF, a regra "Application não importa pacotes npm" virou uma condição própria do ArchUnitTS, que verifica que os imports são relativos.
+
+## ADR-049 — Repositório único, sem exportação para repositórios separados
+
+**Contexto.** O enunciado pede repositórios públicos separados para cada componente, e o ADR-025 previa exportar cada pasta para o seu repositório com `git subtree push`. O professor autorizou o grupo a entregar tudo em um único repositório.
+
+**Decisão.** O projeto inteiro fica no repositório público `puc-crypto`. As pastas continuam autossuficientes, cada uma com a sua solução ou pacote, testes, Dockerfile e README, mas não são exportadas. Ao fim da fase 9, o branch de trabalho é integrado à `main`, e o workflow do projeto anterior, que publicava no Static Web Apps a cada push na `main`, é removido.
+
+**Alternativas.** Exportar cada pasta para um repositório próprio, como previa o ADR-025.
+
+**Justificativa.** Com a autorização do professor, um único repositório simplifica a entrega e a navegação, e evita manter seis repositórios sincronizados. A separação em pastas autossuficientes preserva a independência dos componentes, que é o que o enunciado busca.
+
+**Consequências.** Altera o ADR-025: a organização em pastas se mantém, e a exportação deixa de existir. Os links de GitHub na documentação apontam para pastas deste repositório.
+
+## ADR-050 — Imagens no Docker Hub como `<usuário>/puccrypto-<serviço>`
+
+**Contexto.** O enunciado exemplifica as imagens no formato `dockerhubuser/pjbl/bff:v1`, com dois níveis depois do usuário.
+
+**Decisão.** As imagens são publicadas como `lourencodu/puccrypto-<serviço>:v1` (e `:latest`), para `identity`, `catalog`, `marketdata`, `bff` e `frontend`, em duas arquiteturas (amd64 e arm64). A Function de previsão é publicada como código no Azure Functions, não como imagem.
+
+**Alternativas.** O formato do enunciado, `lourencodu/puccrypto/<serviço>`. Outro registro que aceita caminhos aninhados, como o GitHub Container Registry.
+
+**Justificativa.** O formato do enunciado foi testado: o Docker Hub recusou o envio de `lourencodu/puccrypto/identity:v1` ("push access denied ... insufficient_scope"), enquanto `lourencodu/puccrypto-identity:v1`, com o mesmo login, foi aceito. O Docker Hub admite apenas `<usuário>/<repositório>`. O hífen mantém o prefixo do projeto e o nome do serviço, e o enunciado pede o Docker Hub.
+
+**Consequências.** O nome difere do exemplo do enunciado; a diferença e o motivo ficam registrados na documentação de entrega.
+
+## ADR-051 — Publicação no Azure Container Apps, Functions Flex Consumption e API Management
+
+**Contexto.** O enunciado exige tudo publicado na nuvem, com URLs públicas, e uma tarefa da disciplina pede evidências de publicação no Docker Hub e no Azure (Web App ou Container App). A assinatura é Azure for Students, com crédito limitado e regiões restritas. O ADR-028 deixou o produto do Gateway para esta fase.
+
+**Decisão.**
+- **Contêineres:** frontend, BFF, Identity, Catalog e MarketData rodam no Azure Container Apps, a partir das imagens públicas do Docker Hub, fixadas pelo digest. Catalog e MarketData mantêm uma réplica ativa, porque consomem eventos; os demais escalam a zero.
+- **Function:** a previsão e a coleta agendada rodam em um Function App no plano Flex Consumption, publicado como código.
+- **Gateway:** o API Management (Consumption) encaminha `/api/*` ao BFF.
+- **Bancos:** Azure SQL Database na oferta gratuita (Catalog), Azure Database for PostgreSQL B1ms (Identity) e MongoDB Atlas M0 (MarketData).
+- **Broker:** CloudAMQP no plano gratuito.
+- **Região:** os recursos ficam em canadacentral; o API Management, criado antes da mudança, fica em eastus2.
+- **Execução:** tudo é provisionado pelo script `infra/azure/deploy.sh`.
+
+**Alternativas.** Azure Web App para os contêineres. Kubernetes (AKS). Runtime do Azure Functions dentro de um Container App. Azure Static Web Apps para o frontend. Região eastus2.
+
+**Justificativa.**
+- **Container Apps:** cobra pelo uso, escala a zero e implanta direto do Docker Hub, o que atende à tarefa de evidências.
+- **Flex Consumption:** mantém a Function como serverless de fato, com escala a zero, e aparece no portal como Function App.
+- **API Management:** cumpre o papel de gateway sem código próprio.
+- **canadacentral:** é a região permitida pela assinatura que aceita novos servidores de Azure SQL e de PostgreSQL. Em eastus2 e eastus, a criação foi recusada.
+- **Digest:** com a tag sozinha, o Container App continuou servindo uma versão anterior da imagem.
+
+**Consequências.** Há uma passagem entre regiões (eastus2 → canadacentral) no API Gateway. O PostgreSQL B1ms é o principal custo fixo. A primeira chamada depois de um período sem uso é mais lenta. Os segredos gerados ficam no `.env.cloud.secrets`, fora do Git, e nos segredos dos Container Apps.

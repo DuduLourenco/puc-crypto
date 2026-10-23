@@ -1,5 +1,6 @@
 # Contexto de build: raiz deste repositório.
-FROM node:22-alpine AS build
+# O build roda na arquitetura da máquina (sem dependências nativas); a imagem final vale para amd64 e arm64.
+FROM --platform=$BUILDPLATFORM node:22-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci

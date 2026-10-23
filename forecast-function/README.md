@@ -124,8 +124,8 @@ dotnet test
 
 | Recurso | URL |
 |---|---|
-| `POST /api/forecast` | _a preencher após o deploy_ |
-| `GET /api/health` | _a preencher após o deploy_ |
+| `POST /api/forecast` | https://func-puccrypto-f43a29.azurewebsites.net/api/forecast (exige `x-functions-key`) |
+| `GET /api/health` | https://func-puccrypto-f43a29.azurewebsites.net/api/health |
 
 ## Alunos
 

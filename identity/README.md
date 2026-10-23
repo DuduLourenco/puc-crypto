@@ -85,16 +85,16 @@ dotnet test
 ## Imagem Docker
 
 ```bash
-docker build -t <usuario>/puccrypto/identity:v1 .
+docker build -t <usuario>/puccrypto-identity:v1 .
 ```
 
 ## URLs na nuvem
 
 | Recurso | URL |
 |---|---|
-| API | _a preencher após o deploy_ |
-| Swagger | _a preencher após o deploy_ |
-| Imagem no Docker Hub | _a preencher após a publicação_ |
+| API | https://puccrypto-identity.delightfulcoast-0aa4a01d.canadacentral.azurecontainerapps.io |
+| Swagger | https://puccrypto-identity.delightfulcoast-0aa4a01d.canadacentral.azurecontainerapps.io/swagger |
+| Imagem no Docker Hub | https://hub.docker.com/r/lourencodu/puccrypto-identity (`lourencodu/puccrypto-identity:v1`) |
 
 ## Alunos
 

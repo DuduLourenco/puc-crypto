@@ -1,0 +1,307 @@
+asyncapi: 3.0.0
+
+info:
+  title: PucCrypto — eventos de integração
+  version: 1.0.0
+  description: |
+    Eventos trocados entre os microsserviços do PucCrypto por um broker RabbitMQ
+    (contêiner local no desenvolvimento, CloudAMQP na nuvem).
+
+    Todos os eventos são publicados na exchange `puccrypto.events`, do tipo topic e durável.
+    A chave de roteamento é o nome do evento. O corpo é o evento em JSON (camelCase), sem envelope.
+    As mensagens são persistentes e trazem nas propriedades `type` (nome do evento),
+    `content_type` (`application/json`) e `message_id` (único).
+
+    Cada serviço consumidor tem a sua fila durável, `<serviço>.<NomeDoEvento>`, ligada à exchange
+    pelo nome do evento. Uma mensagem que falha é reentregue uma vez; se falhar de novo, é descartada.
+  contact:
+    name: Grupo PucCrypto
+  tags:
+    - name: catalog
+      description: Catálogo de criptomoedas (Azure SQL)
+    - name: marketdata
+      description: Histórico de preços (MongoDB)
+
+defaultContentType: application/json
+
+servers:
+  local:
+    host: localhost:5672
+    protocol: amqp
+    description: RabbitMQ do docker-compose.yml (painel em http://localhost:15672).
+  nuvem:
+    host: '{host}'
+    protocol: amqps
+    description: RabbitMQ gerenciado no CloudAMQP, com TLS. O endereço completo fica em RabbitMq__Uri.
+    variables:
+      host:
+        description: Host da instância do CloudAMQP.
+
+channels:
+  cryptoRegistered:
+    address: CryptoRegistered
+    title: CryptoRegistered
+    description: 'Chave de roteamento na exchange puccrypto.events. Fila do consumidor: marketdata.CryptoRegistered.'
+    messages:
+      cryptoRegistered:
+        $ref: '#/components/messages/CryptoRegistered'
+    bindings:
+      amqp:
+        is: routingKey
+        exchange:
+          name: puccrypto.events
+          type: topic
+          durable: true
+          autoDelete: false
+          vhost: /
+        bindingVersion: 0.3.0
+
+  cryptoRemoved:
+    address: CryptoRemoved
+    title: CryptoRemoved
+    description: 'Chave de roteamento na exchange puccrypto.events. Fila do consumidor: marketdata.CryptoRemoved.'
+    messages:
+      cryptoRemoved:
+        $ref: '#/components/messages/CryptoRemoved'
+    bindings:
+      amqp:
+        is: routingKey
+        exchange:
+          name: puccrypto.events
+          type: topic
+          durable: true
+          autoDelete: false
+          vhost: /
+        bindingVersion: 0.3.0
+
+  pricesIngested:
+    address: PricesIngested
+    title: PricesIngested
+    description: 'Chave de roteamento na exchange puccrypto.events. Fila do consumidor: catalog.PricesIngested.'
+    messages:
+      pricesIngested:
+        $ref: '#/components/messages/PricesIngested'
+    bindings:
+      amqp:
+        is: routingKey
+        exchange:
+          name: puccrypto.events
+          type: topic
+          durable: true
+          autoDelete: false
+          vhost: /
+        bindingVersion: 0.3.0
+
+operations:
+  catalogPublicaCryptoRegistered:
+    action: send
+    channel:
+      $ref: '#/channels/cryptoRegistered'
+    title: Catalog publica CryptoRegistered
+    summary: Uma criptomoeda foi cadastrada no catálogo (slice CreateCrypto).
+    tags:
+      - name: catalog
+    messages:
+      - $ref: '#/channels/cryptoRegistered/messages/cryptoRegistered'
+    bindings:
+      amqp:
+        deliveryMode: 2
+        bindingVersion: 0.3.0
+
+  marketdataConsomeCryptoRegistered:
+    action: receive
+    channel:
+      $ref: '#/channels/cryptoRegistered'
+    title: MarketData consome CryptoRegistered
+    summary: Passa a acompanhar a criptomoeda e carrega 90 dias de histórico na CoinGecko (slice TrackAsset).
+    tags:
+      - name: marketdata
+    messages:
+      - $ref: '#/channels/cryptoRegistered/messages/cryptoRegistered'
+    bindings:
+      amqp:
+        ack: true
+        bindingVersion: 0.3.0
+
+  catalogPublicaCryptoRemoved:
+    action: send
+    channel:
+      $ref: '#/channels/cryptoRemoved'
+    title: Catalog publica CryptoRemoved
+    summary: Uma criptomoeda foi excluída do catálogo (slice DeleteCrypto).
+    tags:
+      - name: catalog
+    messages:
+      - $ref: '#/channels/cryptoRemoved/messages/cryptoRemoved'
+    bindings:
+      amqp:
+        deliveryMode: 2
+        bindingVersion: 0.3.0
+
+  marketdataConsomeCryptoRemoved:
+    action: receive
+    channel:
+      $ref: '#/channels/cryptoRemoved'
+    title: MarketData consome CryptoRemoved
+    summary: Deixa de acompanhar a criptomoeda e apaga o histórico dela (slice UntrackAsset).
+    tags:
+      - name: marketdata
+    messages:
+      - $ref: '#/channels/cryptoRemoved/messages/cryptoRemoved'
+    bindings:
+      amqp:
+        ack: true
+        bindingVersion: 0.3.0
+
+  marketdataPublicaPricesIngested:
+    action: send
+    channel:
+      $ref: '#/channels/pricesIngested'
+    title: MarketData publica PricesIngested
+    summary: Preços novos foram gravados, na carga inicial (TrackAsset) ou na coleta (CollectPrices). Um evento por criptomoeda.
+    tags:
+      - name: marketdata
+    messages:
+      - $ref: '#/channels/pricesIngested/messages/pricesIngested'
+    bindings:
+      amqp:
+        deliveryMode: 2
+        bindingVersion: 0.3.0
+
+  catalogConsomePricesIngested:
+    action: receive
+    channel:
+      $ref: '#/channels/pricesIngested'
+    title: Catalog consome PricesIngested
+    summary: Guarda o último preço na criptomoeda; preços mais antigos que o atual são ignorados (slice UpdateLatestPrice).
+    tags:
+      - name: catalog
+    messages:
+      - $ref: '#/channels/pricesIngested/messages/pricesIngested'
+    bindings:
+      amqp:
+        ack: true
+        bindingVersion: 0.3.0
+
+components:
+  messages:
+    CryptoRegistered:
+      name: CryptoRegistered
+      title: Criptomoeda cadastrada
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/CryptoRegistered'
+      bindings:
+        amqp:
+          messageType: CryptoRegistered
+          bindingVersion: 0.3.0
+      examples:
+        - name: bitcoin
+          payload:
+            cryptocurrencyId: 4d8f9146-4d0f-45dd-bb01-0db807f420e8
+            symbol: BTC
+            name: Bitcoin
+            coinGeckoId: bitcoin
+            occurredAt: '2026-10-05T21:51:31.594Z'
+
+    CryptoRemoved:
+      name: CryptoRemoved
+      title: Criptomoeda excluída
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/CryptoRemoved'
+      bindings:
+        amqp:
+          messageType: CryptoRemoved
+          bindingVersion: 0.3.0
+      examples:
+        - name: bitcoin
+          payload:
+            cryptocurrencyId: 4d8f9146-4d0f-45dd-bb01-0db807f420e8
+            coinGeckoId: bitcoin
+            occurredAt: '2026-10-05T22:10:02.095Z'
+
+    PricesIngested:
+      name: PricesIngested
+      title: Preços gravados
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/PricesIngested'
+      bindings:
+        amqp:
+          messageType: PricesIngested
+          bindingVersion: 0.3.0
+      examples:
+        - name: carga inicial de 90 dias
+          payload:
+            cryptocurrencyId: 4d8f9146-4d0f-45dd-bb01-0db807f420e8
+            coinGeckoId: bitcoin
+            count: 91
+            latestPriceUsd: 65000.0
+            latestTimestamp: '2026-10-05T21:51:31Z'
+            occurredAt: '2026-10-05T21:51:32.120Z'
+
+  schemas:
+    CryptoRegistered:
+      type: object
+      additionalProperties: false
+      required: [cryptocurrencyId, symbol, name, coinGeckoId, occurredAt]
+      properties:
+        cryptocurrencyId:
+          type: string
+          format: uuid
+          description: Id da criptomoeda no Catalog; o MarketData usa o mesmo id.
+        symbol:
+          type: string
+          maxLength: 10
+          description: Símbolo em maiúsculas.
+        name:
+          type: string
+          maxLength: 100
+        coinGeckoId:
+          type: string
+          maxLength: 100
+          description: Identificador na API CoinGecko, em minúsculas; não muda depois do cadastro.
+        occurredAt:
+          type: string
+          format: date-time
+
+    CryptoRemoved:
+      type: object
+      additionalProperties: false
+      required: [cryptocurrencyId, coinGeckoId, occurredAt]
+      properties:
+        cryptocurrencyId:
+          type: string
+          format: uuid
+        coinGeckoId:
+          type: string
+          maxLength: 100
+        occurredAt:
+          type: string
+          format: date-time
+
+    PricesIngested:
+      type: object
+      additionalProperties: false
+      required: [cryptocurrencyId, coinGeckoId, count, latestPriceUsd, latestTimestamp, occurredAt]
+      properties:
+        cryptocurrencyId:
+          type: string
+          format: uuid
+        coinGeckoId:
+          type: string
+        count:
+          type: integer
+          minimum: 1
+          description: Quantidade de preços gravados nesta carga ou coleta.
+        latestPriceUsd:
+          type: number
+          exclusiveMinimum: 0
+          description: Preço em dólar do instante mais recente gravado.
+        latestTimestamp:
+          type: string
+          format: date-time
+        occurredAt:
+          type: string
+          format: date-time

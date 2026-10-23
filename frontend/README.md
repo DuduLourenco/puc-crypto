@@ -102,15 +102,15 @@ npm run typecheck   # TypeScript
 ## Imagem Docker
 
 ```bash
-docker build --build-arg VITE_BFF_URL=<url-do-gateway> -t <usuario>/puccrypto/frontend:v1 .
+docker build --build-arg VITE_BFF_URL=<url-do-gateway> -t <usuario>/puccrypto-frontend:v1 .
 ```
 
 ## URLs na nuvem
 
 | Recurso | URL |
 |---|---|
-| Frontend | _a preencher após o deploy_ |
-| Imagem no Docker Hub | _a preencher após a publicação_ |
+| Frontend | https://puccrypto-frontend.delightfulcoast-0aa4a01d.canadacentral.azurecontainerapps.io |
+| Imagem no Docker Hub | https://hub.docker.com/r/lourencodu/puccrypto-frontend (`lourencodu/puccrypto-frontend:v1`) |
 
 ## Alunos
 
