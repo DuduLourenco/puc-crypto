@@ -21,3 +21,6 @@ dist/
 .env.cloud
 .env.cloud.secrets
 .DS_Store
+
+# Documentos pessoais de trabalho
+docs/PUC.docx
