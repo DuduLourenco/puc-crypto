@@ -46,7 +46,7 @@ As decisões 025 a 032 decorrem do enunciado final do PJBL ([enunciado-pjbl.md](
 | 038 | Catalog guarda o último preço a partir de `PricesIngested` | 5 | Aceita |
 | 039 | Previsão por regressão SDCA do ML.NET sobre variações de preço | 6 | Alterada pelo ADR-053 |
 | 040 | Function App em camadas, com os gatilhos na camada API | 6 | Aceita |
-| 041 | Coleta agendada por Function que chama o MarketData | 6 | Aceita |
+| 041 | Coleta agendada por Function que chama o MarketData | 6 | Alterada pelo ADR-055 |
 | 042 | BFF em NestJS 11, com Domain e Application sem framework | 7 | Alterada pelo ADR-048 |
 | 043 | `/aggregated-data` com falha parcial por criptomoeda | 7 | Aceita |
 | 044 | BFF valida o JWT e repassa token e erros | 7 | Aceita |
@@ -58,8 +58,9 @@ As decisões 025 a 032 decorrem do enunciado final do PJBL ([enunciado-pjbl.md](
 | 050 | Imagens no Docker Hub como `<usuário>/puccrypto-<serviço>` | 9 | Aceita |
 | 051 | Publicação no Azure Container Apps, Functions Flex Consumption e API Management | 9 | Alterada pelos ADR-052 e ADR-054 |
 | 052 | Identity em um segundo banco gratuito do Azure SQL | 9 | Aceita |
-| 053 | Um preço por dia no histórico e previsão protegida contra divergência | 10 | Aceita |
+| 053 | Um preço por dia no histórico e previsão protegida contra divergência | 10 | Alterada pelo ADR-055 |
 | 054 | Identity e BFF com uma réplica ativa e tempo limite maior no BFF da nuvem | 10 | Aceita |
+| 055 | Coleta agendada desligada na nuvem para caber na cota gratuita do Azure SQL | 10 | Aceita |
 
 ---
 
@@ -726,3 +727,18 @@ As decisões 025 a 032 decorrem do enunciado final do PJBL ([enunciado-pjbl.md](
 **Justificativa.** O login é a primeira ação de quem avalia ou assiste à demonstração. Uma réplica de 0,25 vCPU e 0,5 GiB parada custa cerca de US$ 6 por mês, pouco em relação ao crédito da assinatura. O frontend volta em poucos segundos e continua escalando a zero.
 
 **Consequências.** Altera o ADR-051, em que só Catalog e MarketData ficavam ativos. O custo fixo sobe duas réplicas. Uma chamada a um serviço fora do ar demora até 60 segundos para virar erro.
+
+## ADR-055 — Coleta agendada desligada na nuvem para caber na cota gratuita do Azure SQL
+
+**Contexto.** Em 09/11, todas as rotas do Catalog respondiam 500 (`Bff.CatalogError` no BFF). O banco `catalog_db` estava pausado com o erro 42119: a cota gratuita do mês, de 100 mil vCore-segundos, tinha acabado. Pelas métricas do Azure, o banco gastava cerca de 17 mil vCore-segundos a cada 12 horas e esgotou a cota em 25/10 e de novo em 03/11. A causa era a coleta agendada: a cada 30 minutos, cada `PricesIngested` gravava o último preço no Catalog, e o banco, que só pausa depois de 60 minutos sem uso, nunca pausava. O `identity_db`, usado só no login, gastou cerca de 5 mil no mês. Com a pausa ao fim da cota, o Azure só aceita o atraso padrão de 60 minutos; com ele, mesmo duas coletas por dia passariam da cota.
+
+**Decisão.**
+- **Coleta:** a Function `CollectPrices` fica desligada na nuvem (`AzureWebJobs.CollectPrices.Disabled=true`). O deploy só a liga com `COLLECT_PRICES=1`. O sistema usa os dados coletados até 09/11, quando foi feita uma última coleta para alinhar o último preço do Catalog ao histórico do MarketData.
+- **`catalog_db`:** ao esgotar a cota, passa a cobrar o excedente em vez de pausar (`BillOverUsage`), com pausa automática depois de 15 minutos sem uso. Isso devolveu o Catalog ainda em novembro; daí em diante, o banco só acorda quando alguém usa o sistema.
+- O `identity_db` não muda.
+
+**Alternativas.** Esperar a cota renovar em 1º de dezembro, com o Catalog fora do ar até lá. Coletar uma ou duas vezes por dia, ainda perto do limite da cota. Deixar de gravar o último preço no Catalog, o que removeria o consumo de `PricesIngested` (ADR-038).
+
+**Justificativa.** O enunciado pede a coleta e os eventos implementados e demonstráveis, não preços atualizados continuamente. A coleta continua no código, testada, e pode ser ligada para a apresentação ou acionada pelo endpoint `POST /prices/collect`. Sem ela, o consumo do banco depende só do uso do site e fica bem abaixo da cota.
+
+**Consequências.** Altera o ADR-041 (a coleta não roda sozinha na nuvem) e o ADR-053 (a coleta a cada 30 minutos). Os preços ficam congelados em 09/11 e a previsão parte dessa data. Em novembro, cada uso do sistema é cobrado do crédito, alguns centavos por sessão; a partir de dezembro, o uso cabe na cota gratuita.

@@ -69,7 +69,7 @@ Prints que só podem ser tirados com o login do grupo no portal (https://portal.
 | Identity | .NET 8 | Cadastro, login, emissão do JWT | Azure SQL (`identity_db`) |
 | Catalog | .NET 8 | Catálogo e lista do usuário; publica e consome eventos | Azure SQL (`catalog_db`), RabbitMQ |
 | MarketData | .NET 8 | Histórico de preços, coleta na CoinGecko; publica e consome eventos | MongoDB Atlas, RabbitMQ, CoinGecko |
-| Function `GetForecast` + coleta agendada | Azure Functions (Flex Consumption), ML.NET | Previsão por machine learning; dispara a coleta | MarketData (coleta) |
+| Function `GetForecast` + coleta agendada | Azure Functions (Flex Consumption), ML.NET | Previsão por machine learning; dispara a coleta (desligada na nuvem, ADR-055) | MarketData (coleta) |
 | Bancos | Azure SQL Database (2 bancos), MongoDB Atlas | Um banco por serviço | — |
 | Broker | RabbitMQ (CloudAMQP) | Exchange `puccrypto.events` | Catalog, MarketData |
 

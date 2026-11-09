@@ -9,7 +9,7 @@ O PucCrypto é uma aplicação distribuída: um microfrontend consome um BFF, ex
 | Function | Gatilho | Descrição |
 |---|---|---|
 | `GetForecast` | HTTP `POST /api/forecast` (chave da Function) | Prevê os próximos preços a partir da série recebida |
-| `CollectPrices` | Agendado (`CollectPricesSchedule`, padrão a cada 30 minutos) | Chama `POST /prices/collect` do MarketData |
+| `CollectPrices` | Agendado (`CollectPricesSchedule`, padrão a cada 30 minutos) | Chama `POST /prices/collect` do MarketData. Desligado na nuvem (ADR-055) |
 | `Health` | HTTP `GET /api/health` (anônimo) | Indica que o Function App está no ar |
 
 O projeto segue Clean Architecture, com um projeto por camada e dependências apontando para dentro:

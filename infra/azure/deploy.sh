@@ -3,6 +3,7 @@
 #
 #   infra/azure/deploy.sh                # provisiona, publica as imagens e implanta
 #   SKIP_IMAGES=1 infra/azure/deploy.sh  # implanta sem gerar as imagens de novo
+#   COLLECT_PRICES=1 infra/azure/deploy.sh  # liga a coleta agendada de preços (desligada por padrão)
 #
 # Recursos (todos no grupo AZURE_RESOURCE_GROUP):
 #   Azure Container Apps   identity, catalog, marketdata, bff, frontend (imagens do Docker Hub)
@@ -177,6 +178,10 @@ fi
 deploy_app marketdata 8080 1
 
 # ---------- Azure Functions (Flex Consumption) ----------
+# A coleta agendada fica desligada por padrão: cada execução grava o último preço no Catalog e
+# mantinha o banco gratuito do Azure SQL sempre acordado, o que esgotava a cota do mês (ADR-055).
+collect_prices_disabled=true
+if [[ "${COLLECT_PRICES:-0}" == 1 ]]; then collect_prices_disabled=false; fi
 step "Storage $storage e Function App $function_app (Flex Consumption)"
 if ! exists az storage account show -g "$rg" -n "$storage"; then
   az storage account create -g "$rg" -n "$storage" -l "$location" --sku Standard_LRS --kind StorageV2 \
@@ -188,6 +193,7 @@ if ! exists az functionapp show -g "$rg" -n "$function_app"; then
 fi
 az functionapp config appsettings set -g "$rg" -n "$function_app" -o none --settings \
   "CollectPricesSchedule=${COLLECT_PRICES_SCHEDULE:-0 */30 * * * *}" \
+  "AzureWebJobs.CollectPrices.Disabled=$collect_prices_disabled" \
   "MarketData__BaseUrl=$(app_url marketdata)/" \
   "MarketData__CollectorApiKey=$COLLECTOR_API_KEY"
 # Chave conhecida de antemão, usada pelo BFF no cabeçalho x-functions-key.

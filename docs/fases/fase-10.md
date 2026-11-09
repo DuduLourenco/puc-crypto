@@ -57,7 +57,21 @@ Correção (ADR-054), no `infra/azure/deploy.sh` e aplicada na nuvem: Identity e
 
 Depois da mudança, às 23:33 UTC, com uma réplica ativa no BFF e no Identity: primeiro login pelo Gateway em 4,9 segundos, os seguintes em cerca de 2 segundos, e `/aggregated-data` com previsão de 30 dias em 4,5 segundos. A coleta das 23:30 também substituiu o preço do dia. Um teste agendado no meio do caminho foi descartado: o computador que media entrou em repouso durante a execução.
 
-## 5. Pendências do grupo
+## 5. Cota gratuita do Azure SQL
+
+Em 09/11, todas as telas que dependem do Catalog mostravam `Bff.CatalogError`. O Catalog respondia 500, e os logs mostravam o erro 42119 do Azure SQL: o `catalog_db` tinha esgotado a cota gratuita do mês e estava pausado até 1º de dezembro. Pelas métricas, o banco gastava cerca de 17 mil vCore-segundos a cada 12 horas e esgotou a cota em 25/10 e em 03/11; o `identity_db` gastou cerca de 5 mil no mês.
+
+A causa era a coleta a cada 30 minutos: cada coleta gravava o último preço no Catalog, e o banco, que só pausa depois de 60 minutos sem uso, ficava sempre acordado. Correção (ADR-055):
+
+| Onde | Mudança |
+|---|---|
+| Function App | Coleta agendada desligada (`AzureWebJobs.CollectPrices.Disabled=true`), depois de uma última coleta em 09/11 para alinhar o último preço do Catalog ao histórico |
+| `catalog_db` | Cobra o excedente em vez de pausar, com pausa automática depois de 15 minutos sem uso |
+| `infra/azure/deploy.sh` | Coleta desligada por padrão; `COLLECT_PRICES=1` liga |
+
+Verificação: login, lista e catálogo voltaram a responder pelo Gateway; o último preço no Catalog passou de 03/11 para 09/11; `/aggregated-data` com previsão de 30 dias trouxe histórico e previsão para as três moedas em 3,3 segundos.
+
+## 6. Pendências do grupo
 
 - Prints do Portal Azure: grupo de recursos, Container App do frontend com a imagem do Docker Hub e a API no API Management.
 - Gravação do vídeo e o link no ARC42.
