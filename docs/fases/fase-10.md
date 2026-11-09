@@ -71,6 +71,8 @@ A causa era a coleta a cada 30 minutos: cada coleta gravava o último preço no 
 
 Verificação: login, lista e catálogo voltaram a responder pelo Gateway; o último preço no Catalog passou de 03/11 para 09/11; `/aggregated-data` com previsão de 30 dias trouxe histórico e previsão para as três moedas em 3,3 segundos.
 
+Depois da correção, os bancos pausam sozinhos quando ficam sem uso: o `identity_db` depois de 60 minutos, o `catalog_db` depois de 15. O primeiro login depois de uma hora parado levou quase um minuto, enquanto o banco acordava; com o banco ligado, leva de 0,7 a 2 segundos. Para essa espera não parecer travamento, o frontend mostra, depois de 5 segundos, o aviso "O servidor está acordando depois de um tempo sem uso. Isso pode levar até 1 minuto." no login, no cadastro e nas telas que carregam dados (ADR-056).
+
 ## 6. Pendências do grupo
 
 - Prints do Portal Azure: grupo de recursos, Container App do frontend com a imagem do Docker Hub e a API no API Management.

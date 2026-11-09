@@ -1,4 +1,4 @@
-import { ErrorMessage } from '@puccrypto/shared';
+import { ErrorMessage, SlowResponseNotice } from '@puccrypto/shared';
 import { FormEvent, useState } from 'react';
 import {
   FieldErrors,
@@ -99,6 +99,7 @@ export function AuthPage({ onLogin, onRegister }: AuthPageProps) {
         </label>
 
         <ErrorMessage error={error} />
+        <SlowResponseNotice waiting={submitting} />
 
         <button className="pc-button" type="submit" disabled={submitting}>
           {submitting ? 'Enviando…' : mode === 'login' ? 'Entrar' : 'Criar conta'}

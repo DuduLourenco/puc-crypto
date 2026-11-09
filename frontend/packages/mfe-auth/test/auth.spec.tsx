@@ -1,4 +1,5 @@
-import { render, screen } from '@testing-library/react';
+import { SLOW_RESPONSE_MS } from '@puccrypto/shared';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { loginUser } from '../src/application/features/login-user/login-user';
@@ -89,5 +90,28 @@ describe('AuthPage', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Entrar' }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent('E-mail ou senha inválidos.');
+  });
+
+  it('avisa que o servidor pode estar acordando quando a resposta demora', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      let answer: () => void = () => {};
+      const onLogin = vi.fn(() => new Promise<void>((resolve) => (answer = resolve)));
+      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+      render(<AuthPage onLogin={onLogin} onRegister={vi.fn()} />);
+
+      await user.type(screen.getByLabelText('E-mail'), 'ana@example.com');
+      await user.type(screen.getByLabelText('Senha'), 'senha-segura-1');
+      await user.click(screen.getByRole('button', { name: 'Entrar' }));
+      expect(screen.queryByText(/servidor está acordando/)).not.toBeInTheDocument();
+
+      act(() => vi.advanceTimersByTime(SLOW_RESPONSE_MS));
+      expect(screen.getByRole('status')).toHaveTextContent('O servidor está acordando');
+
+      await act(async () => answer());
+      expect(screen.queryByText(/servidor está acordando/)).not.toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

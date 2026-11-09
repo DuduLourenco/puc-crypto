@@ -4,4 +4,4 @@ export { BffError, toUserMessage } from './http/bff-error';
 export { type BffClient, type BffClientOptions, type BffRequest, type HttpMethod, createBffClient } from './http/bff-client';
 export { bffClient } from './http/default-bff-client';
 export * from './format/format';
-export { ErrorMessage, InfoMessage, Loading } from './ui/Feedback';
+export { ErrorMessage, InfoMessage, Loading, SLOW_RESPONSE_MS, SlowResponseNotice, useTakingLong } from './ui/Feedback';

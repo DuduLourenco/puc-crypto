@@ -61,6 +61,7 @@ As decisões 025 a 032 decorrem do enunciado final do PJBL ([enunciado-pjbl.md](
 | 053 | Um preço por dia no histórico e previsão protegida contra divergência | 10 | Alterada pelo ADR-055 |
 | 054 | Identity e BFF com uma réplica ativa e tempo limite maior no BFF da nuvem | 10 | Aceita |
 | 055 | Coleta agendada desligada na nuvem para caber na cota gratuita do Azure SQL | 10 | Aceita |
+| 056 | Aviso de espera longa enquanto o banco da nuvem acorda | 10 | Aceita |
 
 ---
 
@@ -742,3 +743,15 @@ As decisões 025 a 032 decorrem do enunciado final do PJBL ([enunciado-pjbl.md](
 **Justificativa.** O enunciado pede a coleta e os eventos implementados e demonstráveis, não preços atualizados continuamente. A coleta continua no código, testada, e pode ser ligada para a apresentação ou acionada pelo endpoint `POST /prices/collect`. Sem ela, o consumo do banco depende só do uso do site e fica bem abaixo da cota.
 
 **Consequências.** Altera o ADR-041 (a coleta não roda sozinha na nuvem) e o ADR-053 (a coleta a cada 30 minutos). Os preços ficam congelados em 09/11 e a previsão parte dessa data. Em novembro, cada uso do sistema é cobrado do crédito, alguns centavos por sessão; a partir de dezembro, o uso cabe na cota gratuita.
+
+## ADR-056 — Aviso de espera longa enquanto o banco da nuvem acorda
+
+**Contexto.** Para caber na cota gratuita, os dois bancos do Azure SQL pausam sozinhos: o `identity_db` depois de 60 minutos sem uso, o `catalog_db` depois de 15 (ADR-055). A primeira chamada depois da pausa espera o banco voltar. Em 09/11, o primeiro login depois de uma hora parado levou quase um minuto: pelos logs, o Identity falhou duas vezes ao conectar no banco, às 16:10:29 e às 16:10:50, e conseguiu na nova tentativa. Com o banco ligado, o login leva de 0,7 a 2 segundos. Durante a espera, a tela mostrava só "Enviando…", e parecia travada.
+
+**Decisão.** O frontend avisa a espera longa: depois de 5 segundos sem resposta, aparece a mensagem "O servidor está acordando depois de um tempo sem uso. Isso pode levar até 1 minuto." O aviso fica no pacote compartilhado (`SlowResponseNotice`) e aparece no login e no cadastro e em todo `Loading`, o que inclui a lista de criptomoedas e o dashboard.
+
+**Alternativas.** Manter os bancos sempre ligados: a cota acabaria em cerca de dois dias. Uma chamada periódica para manter o banco acordado: gasta a cota da mesma forma. Não avisar e só orientar quem vai usar o sistema a abrir o site antes.
+
+**Justificativa.** A demora é consequência aceita do plano gratuito; o aviso só deixa claro que o sistema está trabalhando. A mudança fica no frontend, sem custo na nuvem.
+
+**Consequências.** Uma resposta lenta por outro motivo também mostra o aviso. Se o banco demorar mais que os 60 segundos do BFF (ADR-054), o usuário vê o erro e uma nova tentativa funciona, porque o banco já terá acordado.

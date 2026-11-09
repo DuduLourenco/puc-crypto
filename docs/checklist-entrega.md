@@ -98,7 +98,7 @@ Padrão comum aos serviços .NET: em cada slice, `Endpoint` (ou `Consumer`) → 
 | Contexto | Usuário, CoinGecko, MongoDB Atlas, CloudAMQP, Azure (seção 3) |
 | Funcionalidades | Cadastro e login; CRUD do catálogo e da lista; coleta de preços; previsão; dashboard agregado |
 | Tecnologias | React + Module Federation; NestJS; .NET 8; Azure Functions + ML.NET; Azure SQL; MongoDB Atlas; RabbitMQ; Azure Container Apps; API Management; Docker Hub |
-| Decisões | [ADRs.md](ADRs.md), com 52 decisões; destaques: database per service (027), eventos com RabbitMQ (030, 035), previsão em Function HTTP (029, 039), BFF sem framework na Application (042), microfrontends em tempo de execução (045), publicação no Azure (051) |
+| Decisões | [ADRs.md](ADRs.md), com 56 decisões; destaques: database per service (027), eventos com RabbitMQ (030, 035), previsão em Function HTTP (029, 039), BFF sem framework na Application (042), microfrontends em tempo de execução (045), publicação no Azure (051) |
 | Riscos | Partida lenta após inatividade (escala a zero e Azure SQL serverless); evento perdido se a publicação falhar depois da gravação, sem outbox (022); chave do JWT compartilhada (017); modelo de previsão simples (039) |
 | Lacunas | Sem outbox nem fila de mensagens mortas; sem papéis de administrador; sem cache no BFF |
 
