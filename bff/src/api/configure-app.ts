@@ -17,6 +17,9 @@ export function configureApp(app: INestApplication): void {
       )
       .setVersion('1.0')
       .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT', description: 'Token obtido em POST /auth/login.' })
+      // Endereço relativo à página do Swagger: aberto pelo API Gateway, em /api/swagger, as chamadas vão
+      // para /api/...; aberto direto no BFF, vão para a raiz. Sem ele, o Swagger do Gateway perdia o /api.
+      .addServer('./', 'Mesmo endereço desta página (API Gateway ou BFF)')
       .build(),
   );
 

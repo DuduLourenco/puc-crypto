@@ -168,5 +168,11 @@ describe('API do BFF', () => {
       expect(response.body.components.securitySchemes.bearer).toMatchObject({ type: 'http', scheme: 'bearer' });
       expect(response.body.paths['/aggregated-data'].get.responses['200']).toBeDefined();
     });
+
+    it('o documento OpenAPI usa um servidor relativo, que funciona pelo API Gateway e direto no BFF', async () => {
+      const response = await request(app.getHttpServer()).get('/swagger/v1/swagger.json').expect(200);
+
+      expect(response.body.servers).toEqual([expect.objectContaining({ url: './' })]);
+    });
   });
 });
