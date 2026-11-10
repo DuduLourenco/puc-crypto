@@ -27,16 +27,21 @@ Lista do que o enunciado pede no PDF da Entrega 3 (ARC42, C4, Canvas, prints e v
 | Frontend | https://puccrypto-frontend.delightfulcoast-0aa4a01d.canadacentral.azurecontainerapps.io | Pronto. Conta `demo@puccrypto.dev`, senha `PucCrypto-demo-996f85` |
 | API Gateway | https://apim-puccrypto-f43a29.azure-api.net/api/swagger (Swagger do BFF servido pelo Gateway; as rotas ficam sob `/api`, como `/api/health`. A raiz `/api` sozinha responde 404) | Pronto |
 | Azure Function | https://func-puccrypto-f43a29.azurewebsites.net/api/health | Pronto (não exigido como link, mas útil) |
-| Vídeo no YouTube | — | **Pendente** (roteiro na seção 5) |
+| Vídeo no YouTube | https://youtu.be/LWQBNX0nYx0 (não listado) | Pronto |
+
+Todos os links acima estão no ARC42 ([documentacao.docx](documentacao.docx)), na capa (GitHub e vídeo) e na seção "Visão de Implantação".
 
 ## 2. Prints exigidos
 
+Os prints da Entrega 3 foram tirados das gravações do vídeo e estão no ARC42 como Figuras 10 a 22, também salvos em [entrega-3/](entrega-3/). Os tokens de acesso e o ID da assinatura do Azure foram ocultados.
+
 | Print | Arquivo | Situação |
 |---|---|---|
-| Swagger do BFF | [entrega-deploy/swagger-1-bff.png](entrega-deploy/swagger-1-bff.png) | Pronto |
-| Swagger dos microsserviços | [swagger-2-catalog.png](entrega-deploy/swagger-2-catalog.png), [swagger-3-marketdata.png](entrega-deploy/swagger-3-marketdata.png), [swagger-4-identity.png](entrega-deploy/swagger-4-identity.png) | Pronto |
-| Frontend funcionando | [site-1-acesso.png](entrega-deploy/site-1-acesso.png), [site-2-criptomoedas.png](entrega-deploy/site-2-criptomoedas.png), [site-3-dashboard.png](entrega-deploy/site-3-dashboard.png), [site-4-dashboard-tooltip.png](entrega-deploy/site-4-dashboard-tooltip.png), [site-5-dashboard-sol-30-dias.png](entrega-deploy/site-5-dashboard-sol-30-dias.png) | Pronto |
-| API Gateway | Print do API Management no portal (item 4 abaixo). Para mostrar o Gateway funcionando, o Swagger do BFF abre pela URL do Gateway: https://apim-puccrypto-f43a29.azure-api.net/api/swagger | **Pendente** (exige o login no portal) |
+| Swagger do BFF | [print-14-swagger-bff-gateway.jpeg](entrega-3/print-14-swagger-bff-gateway.jpeg), [print-15-aggregated-data.jpeg](entrega-3/print-15-aggregated-data.jpeg) (anterior: [swagger-1-bff.png](entrega-deploy/swagger-1-bff.png)) | Pronto |
+| Swagger dos microsserviços | [print-16-swagger-catalog.jpeg](entrega-3/print-16-swagger-catalog.jpeg), [print-17-swagger-marketdata.jpeg](entrega-3/print-17-swagger-marketdata.jpeg), [print-18-swagger-identity.jpeg](entrega-3/print-18-swagger-identity.jpeg) | Pronto |
+| Frontend funcionando | [print-10-frontend-acesso.jpeg](entrega-3/print-10-frontend-acesso.jpeg), [print-11-frontend-dashboard.jpeg](entrega-3/print-11-frontend-dashboard.jpeg), [print-12-frontend-criptomoedas.jpeg](entrega-3/print-12-frontend-criptomoedas.jpeg) | Pronto |
+| API Gateway | [print-13-api-gateway.jpeg](entrega-3/print-13-api-gateway.jpeg) (chamada do frontend para `apim-puccrypto-f43a29.azure-api.net/api/...`) e [print-14-swagger-bff-gateway.jpeg](entrega-3/print-14-swagger-bff-gateway.jpeg) | Pronto. O print do API Management no portal (item 4 abaixo) é opcional |
+| Integrações (extra) | [print-19-eventos-cloudamqp.jpeg](entrega-3/print-19-eventos-cloudamqp.jpeg), [print-20-mongodb-atlas.jpeg](entrega-3/print-20-mongodb-atlas.jpeg), [print-21-azure-sql.jpeg](entrega-3/print-21-azure-sql.jpeg), [print-22-azure-function.jpeg](entrega-3/print-22-azure-function.jpeg) | Pronto |
 | Docker Hub (outra tarefa) | [entrega-deploy/dockerhub-0-perfil.png](entrega-deploy/dockerhub-0-perfil.png) e seguintes | Pronto |
 | Portal Azure (outra tarefa) | — | **Pendente** (ver abaixo) |
 
@@ -116,7 +121,8 @@ Antes de gravar, abrir o site e o Swagger uma vez: os apps que escalam a zero e 
 
 ## 6. Pendências do grupo
 
-- [ ] Prints do Portal Azure (seção 2).
-- [ ] Vídeo no YouTube e o link no ARC42.
-- [ ] Atualizar o PDF da documentação (`docs/documentacao.pdf`) com os links da seção 1, se ainda não estiverem lá.
+- [ ] Prints do Portal Azure (seção 2), opcionais: o Azure SQL e a Function já aparecem nas Figuras 21 e 22.
+- [x] Vídeo no YouTube e o link no ARC42.
+- [x] ARC42 atualizado em [documentacao.docx](documentacao.docx): links, prints, Canvas refeito, C4 de containers, DER e implantação com o Identity no Azure SQL e a implantação publicada.
+- [ ] Exportar o PDF da Entrega 3 no Word (Arquivo → Salvar como → PDF) sobre `docs/documentacao.pdf`.
 - [ ] Depois da avaliação, apagar os recursos: `az group delete -n rg-puccrypto`.
