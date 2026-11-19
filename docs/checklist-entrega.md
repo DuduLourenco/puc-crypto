@@ -125,4 +125,4 @@ Antes de gravar, abrir o site e o Swagger uma vez: os apps que escalam a zero e 
 - [x] Vídeo no YouTube e o link no ARC42.
 - [x] ARC42 atualizado em [documentacao.docx](documentacao.docx): links, prints, Canvas refeito, C4 de containers, DER e implantação com o Identity no Azure SQL e a implantação publicada.
 - [ ] Exportar o PDF da Entrega 3 no Word (Arquivo → Salvar como → PDF) sobre `docs/documentacao.pdf`.
-- [ ] Depois da avaliação, apagar os recursos: `az group delete -n rg-puccrypto`.
+- [x] Depois da avaliação, apagar os recursos: `az group delete -n rg-puccrypto` (feito em 18/11/2026, junto com o grupo `frontend` da primeira versão).

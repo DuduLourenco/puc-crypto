@@ -51,3 +51,5 @@ Para apagar tudo depois da avaliação:
 ```bash
 az group delete -n <grupo de recursos>
 ```
+
+Em 18/11/2026, depois da avaliação, foram apagados o `rg-puccrypto`, o grupo `frontend` (primeira versão, com Static Web App e Function) e o `DefaultResourceGroup-EUS2` (workspace de logs dessa versão). O MongoDB Atlas (M0) e o CloudAMQP (Little Lemur) estão em planos gratuitos e não geram cobrança.

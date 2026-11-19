@@ -26,6 +26,8 @@ O API Gateway é um serviço gerenciado na nuvem, na frente do BFF.
 
 ## Na nuvem
 
+A implantação na Azure foi apagada em 18/11/2026, depois da avaliação, para não gerar custos. Os endereços abaixo não respondem mais; a demonstração na nuvem está no [vídeo](https://youtu.be/LWQBNX0nYx0), e para publicar de novo basta seguir o [infra/](infra/).
+
 | Componente | URL |
 |---|---|
 | Site (frontend) | https://puccrypto-frontend.delightfulcoast-0aa4a01d.canadacentral.azurecontainerapps.io |
@@ -73,3 +75,6 @@ As fases 1 a 4 descrevem a arquitetura anterior ao enunciado final. A fase 3R re
 - Gabriel Pereira Lugon Moulin
 - João Pedro Novak Rausis
 - Vitor Vieira Machado
+
+## Youtube
+https://youtu.be/LWQBNX0nYx0
